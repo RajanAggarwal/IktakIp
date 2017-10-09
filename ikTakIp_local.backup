@@ -1,0 +1,488 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.5.7
+-- Dumped by pg_dump version 9.6.5
+
+-- Started on 2017-10-09 19:09:05 IST
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 1 (class 3079 OID 12355)
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- TOC entry 2166 (class 0 OID 0)
+-- Dependencies: 1
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 181 (class 1259 OID 24953)
+-- Name: admin; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE admin (
+    id integer NOT NULL,
+    name character varying(100) NOT NULL,
+    email character varying(100) NOT NULL,
+    password character varying(100) NOT NULL,
+    remember_token character varying(255) NOT NULL,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+ALTER TABLE admin OWNER TO postgres;
+
+--
+-- TOC entry 182 (class 1259 OID 24959)
+-- Name: admin_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE admin_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE admin_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2167 (class 0 OID 0)
+-- Dependencies: 182
+-- Name: admin_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE admin_id_seq OWNED BY admin.id;
+
+
+--
+-- TOC entry 190 (class 1259 OID 24999)
+-- Name: employe_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE employe_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE employe_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 191 (class 1259 OID 25073)
+-- Name: employee_locations; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE employee_locations (
+);
+
+
+ALTER TABLE employee_locations OWNER TO postgres;
+
+--
+-- TOC entry 189 (class 1259 OID 24996)
+-- Name: employees; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE employees (
+    deleted integer DEFAULT 0 NOT NULL,
+    name character varying(255),
+    email character varying(255),
+    surname character varying(255),
+    job_title character varying(255),
+    mobile_number character varying(50),
+    work_location character varying(255),
+    shift_type character varying(255),
+    job_start_date date,
+    job_end_date date,
+    official_id character varying(255),
+    phone1 character varying(50),
+    phone2 character varying(50),
+    status character varying(50) DEFAULT 'Active'::character varying NOT NULL,
+    employer_id bigint,
+    password character varying(255),
+    created_at date,
+    updated_at date,
+    id integer DEFAULT nextval('employe_id_seq'::regclass) NOT NULL
+);
+
+
+ALTER TABLE employees OWNER TO postgres;
+
+--
+-- TOC entry 183 (class 1259 OID 24961)
+-- Name: migrations; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE migrations (
+    id integer NOT NULL,
+    migration character varying(255) NOT NULL,
+    batch integer NOT NULL
+);
+
+
+ALTER TABLE migrations OWNER TO postgres;
+
+--
+-- TOC entry 184 (class 1259 OID 24964)
+-- Name: migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE migrations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE migrations_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2168 (class 0 OID 0)
+-- Dependencies: 184
+-- Name: migrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE migrations_id_seq OWNED BY migrations.id;
+
+
+--
+-- TOC entry 185 (class 1259 OID 24966)
+-- Name: password_resets; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE password_resets (
+    email character varying(255) NOT NULL,
+    token character varying(255) NOT NULL,
+    created_at timestamp(0) without time zone
+);
+
+
+ALTER TABLE password_resets OWNER TO postgres;
+
+--
+-- TOC entry 186 (class 1259 OID 24972)
+-- Name: user_activations; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE user_activations (
+    user_id integer NOT NULL,
+    token character varying(191) NOT NULL,
+    created_at timestamp(0) without time zone NOT NULL
+);
+
+
+ALTER TABLE user_activations OWNER TO postgres;
+
+--
+-- TOC entry 187 (class 1259 OID 24975)
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE users (
+    id integer NOT NULL,
+    name character varying(100) NOT NULL,
+    email character varying(100) NOT NULL,
+    password character varying(100) NOT NULL,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone,
+    remember_token text,
+    deleted bigint DEFAULT 0,
+    status text DEFAULT 'Active'::text,
+    activated boolean DEFAULT false NOT NULL,
+    company_logo character varying(255)
+);
+
+
+ALTER TABLE users OWNER TO postgres;
+
+--
+-- TOC entry 188 (class 1259 OID 24983)
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE users_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2169 (class 0 OID 0)
+-- Dependencies: 188
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE users_id_seq OWNED BY users.id;
+
+
+--
+-- TOC entry 2015 (class 2604 OID 24985)
+-- Name: admin id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY admin ALTER COLUMN id SET DEFAULT nextval('admin_id_seq'::regclass);
+
+
+--
+-- TOC entry 2016 (class 2604 OID 24986)
+-- Name: migrations id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY migrations ALTER COLUMN id SET DEFAULT nextval('migrations_id_seq'::regclass);
+
+
+--
+-- TOC entry 2019 (class 2604 OID 24987)
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
+
+
+--
+-- TOC entry 2148 (class 0 OID 24953)
+-- Dependencies: 181
+-- Data for Name: admin; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY admin (id, name, email, password, remember_token, created_at, updated_at) FROM stdin;
+1	Admin	admin@gmail.com	$2y$10$.4paZKgzYC9jvtuwJXt6TOP.WCdycsthiwnAt/pBJYYjELc3PCPla		2017-10-15 10:20:15	2017-10-15 10:20:15
+\.
+
+
+--
+-- TOC entry 2170 (class 0 OID 0)
+-- Dependencies: 182
+-- Name: admin_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('admin_id_seq', 1, true);
+
+
+--
+-- TOC entry 2171 (class 0 OID 0)
+-- Dependencies: 190
+-- Name: employe_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('employe_id_seq', 7, true);
+
+
+--
+-- TOC entry 2158 (class 0 OID 25073)
+-- Dependencies: 191
+-- Data for Name: employee_locations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY employee_locations  FROM stdin;
+\.
+
+
+--
+-- TOC entry 2156 (class 0 OID 24996)
+-- Dependencies: 189
+-- Data for Name: employees; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY employees (deleted, name, email, surname, job_title, mobile_number, work_location, shift_type, job_start_date, job_end_date, official_id, phone1, phone2, status, employer_id, password, created_at, updated_at, id) FROM stdin;
+0	sadas	sadas@gmail.com	sadasd	sadsa	asd	asd	sadas	2017-09-27	2017-10-30	sadas	asd	sdfs	Active	7	$2y$10$.ivW6Aw6dFzdrwxQuVtUW.PFyX0uNNHjAbOiUT6Po5Y2PbCI8aKhe	2017-10-04	2017-10-04	2
+1	1dsad	1kdavinder.isdmpinge@gmail.com	sadas1	asdas1	asdsa1	sadas1	asdsa1	2017-10-03	2017-10-09	sadas1	sadsa1	sadsad1	Active	7	$2y$10$4czuLtzlttVpzaJLwWm3xuv8qFjRQaTXPWf23dnsfqtYHQt22zQ0u	2017-10-04	2017-10-04	4
+0	dsad111	kdavinder.impinge@gmail.com	sadsa111	asdas11	234324234	dsafsdf11	sdfsdfsd11	2017-10-12	2017-10-12	sdfds1	sdfsdfs111	dsfsd1	Inactive	7	$2y$10$5p25Cr6/WKouhpewdXdCPuXaIepDS7iPODq/cAnCSCI3P1dZYICvG	2017-10-04	2017-10-04	1
+0	dsfsd	sdfsd@gmail.com	dsfsd	dsfsdf	dsf	dsfsd	dsfsd	2017-09-26	2017-10-03	dfds	sdsf	sdfsdf	Inactive	7	$2y$10$GFpJCEus1TfV.QI6vAv6oumuc6xEv1K8Nk/T80XYLrUKLuWad1ODW	2017-10-04	2017-10-04	3
+0	safsaf	afasf@fff.com	safasG	ASDGASGAS	GASGASG	ASGASG	ASGASG	2017-10-06	2017-10-20	2525	4545454	4554545	Active	11	$2y$10$PL3Sgte4RQhyqBNO89w/KOZzSPmIVKZtwZCcxVdL/fpfrg70dFRou	2017-10-04	2017-10-04	5
+0	test1	test1.test2@gmail.com	test2	S/w dev	7696123456	mohali	day	2017-10-12	2017-10-25	123456	12345689774	1234568745	Active	18	$2y$10$ufyhqWvy3M7ZlBvNUqW/b.CqS0CVUQcWuKsfjw7jKkpcL5fLGVJw2	2017-10-05	2017-10-05	6
+0	Priya	kdavinder.impinge1@gmail.com	Rajput	\N	76961234567	\N	\N	1970-01-01	1970-01-01	\N	\N	\N	Active	19	$2y$10$nl7R65sCWZ9pX7yCjA9hr.9kORH346QwtskzHG.NDwl0vCGx8OWdG	2017-10-06	2017-10-06	7
+\.
+
+
+--
+-- TOC entry 2150 (class 0 OID 24961)
+-- Dependencies: 183
+-- Data for Name: migrations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY migrations (id, migration, batch) FROM stdin;
+1	2014_10_12_000000_create_users_table	1
+2	2014_10_12_100000_create_password_resets_table	1
+3	2017_09_29_050455_create_admin_table	2
+4	2017_10_03_062152_add_boolean_column_to_users_table	3
+5	2017_10_03_062152_create_user_activations_table	3
+\.
+
+
+--
+-- TOC entry 2172 (class 0 OID 0)
+-- Dependencies: 184
+-- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('migrations_id_seq', 5, true);
+
+
+--
+-- TOC entry 2152 (class 0 OID 24966)
+-- Dependencies: 185
+-- Data for Name: password_resets; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY password_resets (email, token, created_at) FROM stdin;
+\.
+
+
+--
+-- TOC entry 2153 (class 0 OID 24972)
+-- Dependencies: 186
+-- Data for Name: user_activations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY user_activations (user_id, token, created_at) FROM stdin;
+4	052315ff8b960fdc63d6f640b8a87b2336a10848a2c9156723aec91fd1293f50	2017-10-03 06:48:39
+1	da88f3890a58658fb35b9b78e82984b2fe4fd66e5ab7884e7ceaaad94a3a87b8	2017-10-03 08:44:00
+10	be1f6408e6d651fa35a31218884ddc47fd35ee3c17e3be547daadf39f725d017	2017-10-04 13:40:13
+13	85bbc2ca2124290c8681e654d59b23b1f36f49d076b97e9976105654a4a6563b	2017-10-04 14:19:55
+15	087fc65dc8e066afb8b0f5a7cae284cd242bffd367d2efbe3dcb70a9120ac6de	2017-10-04 14:33:51
+16	681d61987126f1b8e25ce8ead21165dec1f2ca787c12aeeafea5ba7648b19293	2017-10-04 14:36:02
+17	db2e593d0ea0743c55d19187306fab9eddb37374259e4a4bace0d7ce67bb1eaa	2017-10-04 14:39:04
+\.
+
+
+--
+-- TOC entry 2154 (class 0 OID 24975)
+-- Dependencies: 187
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY users (id, name, email, password, created_at, updated_at, remember_token, deleted, status, activated, company_logo) FROM stdin;
+14	fdgdfg	df@gmail.com	$2y$10$3w7Kyddj.0i81G3yZGE7ve3jo4YkRdzvWlA9fUZ2xr5Z8HcD4Ji7u	2017-10-04 14:24:37	2017-10-05 11:10:50	\N	0	Inactive	t	\N
+2	Priya Rajput	chauhanpriya863@gmail.com	$2y$10$tGjHZK40o4AdH9mT58e0UexfkIy9zRm1ap4u1bIQztpzNG0PtK62K	2017-09-29 08:25:02	2017-10-04 05:49:56	B7BGAdKJrW5Rnoa6V5dLBJeVcUB3FFXO9GXfpIB8Au8Z7zP8Gr1SVJNfxEts	1	Active	f	\N
+10	dsad	fgf@gmail.com	$2y$10$2woGB2fFU4qXDUy9aIwgT.ds7I4CQwxbGDDzpIi4ZwXAVX6lVQskK	2017-10-04 13:40:13	2017-10-04 13:45:54	\N	0	Inactive	f	\N
+7	NEW TEST	newtest@gmail.com	$2y$10$8mZm53r1G8IMJEZDk43liur5XYP68HDMXaZxyHA2rn8dKts6vwDiy	2017-10-03 09:24:56	2017-10-04 14:07:34	kxDFauWyCwiDlSCzAFD0rGq9RBmfuYbE9yHmB08LExOJGXIW9yTCMKxe25gk	0	Inactive	t	\N
+6	New User	testuser@gmail.com	$2y$10$HxEr40qik4U6zI/ryrp9j.wID8PRVDOAoUM67D9UAgiY77h377coW	2017-10-03 08:47:00	2017-10-04 14:07:37	DjIBoFcSto9k95zViT9EaqiCczxCPn5NEibYbed5uzCHS6h0ekGJ3LrChBge	0	Inactive	t	\N
+5	New User	jagdeepg.impinge@gmail.com	$2y$10$4DT0rXBjbCgm2r.kXhaWHOQfNglcum2JowYGYSu3STaUAJExMF8na	2017-10-03 08:41:16	2017-10-04 14:07:38	RabX8N2wj5XNVFGnpkulkAG9CNFjgHuT9C4tBqZCIa6PfOsajGekAR70mukV	0	Inactive	t	\N
+1	Rajan Aggarwal	rajan.impinge@gmail.com	$2y$10$.4paZKgzYC9jvtuwJXt6TOP.WCdycsthiwnAt/pBJYYjELc3PCPla	2017-10-15 10:20:15	2017-10-04 14:07:42	rnBkqAtHcs8gfO1emjUuwXf5BpQGX9J5zRWK3qms8vltd2kCvulo5Tzj9gPm	0	Active	t	\N
+8	sdfsdf  dsfsd	kdavinder.impinge@gmail.com	$2y$10$eeWTdTEYPyR/0qYXKrjbwOGzGwKeFETonyr2834JP9yro.TaSNNLW	2017-10-03 09:38:18	2017-10-04 14:07:43	BrMAibGQNUIwpDgBEI2LaQdtAAMyeCe0HPsgZR42fd9FaCVVpxXr6iv9Snxc	0	Active	t	\N
+11	Gagan	gagangarg20@gmail.com	$2y$10$qqfmnnzWin33hVcKgBH1puqiK0roVQAKSVwt99o.RQleHm0r1G8XK	2017-10-04 13:46:42	2017-10-04 14:08:38	ND8Gjk6IgPMIUFpoUp16NOwmdNjLufFrVkdVSpGcmFJBYTXQ6Hv4ZTLGTqCx	0	Active	t	\N
+12	sdsd	sds@gmail.com	$2y$10$QWzl6h2.tfzWU/0LS7Q90.zimaNkI7FsMISu42vlmGdWoGgDwNEIC	2017-10-04 14:18:39	2017-10-04 14:18:39	\N	0	Active	f	\N
+13	priya	promatics.priya@gmail.com	$2y$10$/djvVfwpIWtOwYM5xYcwqu.afVShb6n.ZHncbg7EAT6IqagNZjCly	2017-10-04 14:19:55	2017-10-04 14:24:05	E4qRFgdC5rigRJkkuk4yGcMqJv7nWoguBn5uNnBqt7vsAjjG4XWVBombtSlE	1	Active	f	\N
+15	Rajan	rajan@gmail.com	$2y$10$x0dCQZCdXEowOk9FkttefeGhGrzkuew5pHG4Cx51cxuzLuP1epsXK	2017-10-04 14:33:40	2017-10-04 14:33:40	ro68irajKXAAllCRRmDiHduZAzdDSYGk0ZDt9GhEPUCuHqDIMWwZkGr9jnNG	0	Active	f	\N
+16	fdf	fdgdf@gmail.com	$2y$10$Fbmc.zuWzqyFThTpyKoFkelRYIkDhY6BnRXWKcVZGj/fJAY.ywpQ6	2017-10-04 14:35:55	2017-10-04 14:35:55	\N	0	Active	f	\N
+9	Priya	priya.slinfy@gmail.com	$2y$10$gKJsmvbHlbNKiSgEAnTVlOTFl56kx8QLUSoEmO1k/PfvBYUzbswFK	2017-10-03 09:44:10	2017-10-05 13:18:41	6hRd9pFjFSQ6ZkTFTttLVilbGrPANyDYuyxRD7psEIvN2KRjZhyVgRffN2VO	0	Active	t	20171005131841qw.jpg
+17	asa	as@gmail.com	$2y$10$5wjtswWasM1S4mXgrUqaAexXWnjn3jSW9Py3ukJGwNRUEZFVGOJDm	2017-10-04 14:38:40	2017-10-04 14:38:40	GMmxxe6rfelt0mjHEj1R5b3HFaqXxleZKf5c6aABoaajCRnXFf6LOYvS1IIo	0	Active	f	\N
+18	Logo Test	testlogo@gmail.com	$2y$10$rywPc.ZdcvdE1YXeqjYG0.k8WOoqSthnU3rr7hBLis.dQwLB2sJhW	2017-10-05 08:18:03	2017-10-05 08:18:03	HB2HZS6H4h65KBZ988LN1RPEGTjvlMczz0Ud1deASqdvdP9ZJVCj5mUggqAG	0	Active	t	20171005081803cat1.png
+19	Priya	priya.slinfy1@gmail.com	$2y$10$rZeChHays.gnXFbU/ooFResRAEfCzp.2SWV3KPBdirqe3CQWL.T/.	2017-10-06 08:22:57	2017-10-06 08:22:57	\N	0	Active	t	\N
+\.
+
+
+--
+-- TOC entry 2173 (class 0 OID 0)
+-- Dependencies: 188
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('users_id_seq', 19, true);
+
+
+--
+-- TOC entry 2025 (class 2606 OID 24989)
+-- Name: admin admin_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY admin
+    ADD CONSTRAINT admin_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2033 (class 2606 OID 25053)
+-- Name: employees employe_id; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY employees
+    ADD CONSTRAINT employe_id PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2027 (class 2606 OID 24991)
+-- Name: migrations migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY migrations
+    ADD CONSTRAINT migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2031 (class 2606 OID 24993)
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2028 (class 1259 OID 24994)
+-- Name: password_resets_email_index; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX password_resets_email_index ON password_resets USING btree (email);
+
+
+--
+-- TOC entry 2029 (class 1259 OID 24995)
+-- Name: user_activations_token_index; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX user_activations_token_index ON user_activations USING btree (token);
+
+
+--
+-- TOC entry 2165 (class 0 OID 0)
+-- Dependencies: 6
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+-- Completed on 2017-10-09 19:09:05 IST
+
+--
+-- PostgreSQL database dump complete
+--
+
