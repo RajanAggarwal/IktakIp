@@ -44,7 +44,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Company Logo</label><span class="star-required">*</span>
+                            <label>Company Logo</label><span class="star-required"></span>
                             <input type="file" class="" name="image">
                         </div>
                         <?php if($type =='add'){ ?>
