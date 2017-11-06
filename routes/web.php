@@ -17,66 +17,97 @@ Route::get('/', function () {
 
 Auth::routes();
 
+Route::get('test', 'TestController@index');
+
 Route::group(['middleware'=>'VerifyEmployer'], function(){
+
+	Route::group(['namespace'=>'frontend'], function(){
+
+		// Dashboard
+		Route::get('/home', 'HomeController@index')->name('home');
+		Route::get('/' , 'HomeController@index')->name('home');
+
+		// Locations
+		Route::get('locations', 'LocationsController@index')->name('locations.index');
+		Route::get('locations/add', 'LocationsController@add')->name('locations.add');
+		Route::post('locations', 'LocationsController@store')->name('locations.store');
+		Route::get('locations/{id}/edit', 'LocationsController@edit')->name('locations.edit');
+		Route::patch('locations/{id}', 'LocationsController@update')->name('locations.update');
+		Route::delete('list_locations/{id}', 'LocationsController@destroy')->name('locations.destroy');
+
+		// Employees
+		Route::get('employees', 'EmployeesController@index')->name('employees.index');
+		Route::get('employees/add', 'EmployeesController@add')->name('employees.add');
+		Route::post('employees', 'EmployeesController@store')->name('employees.store');
+		Route::get('employees/{id}/edit', 'EmployeesController@edit')->name('employees.edit');
+		Route::patch('employees/{id}', 'EmployeesController@update')->name('employees.update');
+		Route::delete('employees/{id}', 'EmployeesController@destroy')->name('employees.destroy');
+		Route::get('employees/{id}/update-status', 'EmployeesController@updateStatus')->name('employees.update_status');
 	
-	Route::get('/' , 'HomeController@index');
-	Route::get('/home', 'HomeController@index')->name('home');
+	});
 
 	Route::get('/user/activation/{token}', 'Auth\RegisterController@activateUser')->name('user.activate');
 
-	Route::get('/locations', 'LocationController@index');
-	Route::get('/locations/{id}', 'LocationController@index');
 
-	Route::any('/save_location', 'LocationController@save_location');
-	Route::any('/save_location/{id}', 'LocationController@save_location');
+	/* Descarded Routes */
+	/* //////////////////////////////////////// */
+	// Route::get('/locations/{id}', 'LocationController@index');
+	// Route::any('/list_locations', 'LocationController@list_locations');
+	// Route::delete('/delete_locations/{id}', 'LocationController@delete_locations');
 
-	Route::any('/list_locations', 'LocationController@list_locations');
-	Route::delete('/delete_locations/{id}', 'LocationController@delete_locations');
+	// Route::any('/save_location', 'LocationController@save_location');
+	// Route::any('/save_location/{id}', 'LocationController@save_location');
 
-	Route::any('/list_employees/{id}', 'UserController@viewAllEmployeesOfEmployerToEployer'); 
-	Route::any('/add_employee/{id}', 'UserController@add_employee_for_employer');
-	Route::any('/edit_employee/{id}', 'UserController@edit_employee_for_employer');
-	Route::any('/view_employee/{id}', 'UserController@view_employee_for_employer');
+	// Route::any('/list_employees/{id}', 'UserController@viewAllEmployeesOfEmployerToEployer'); 
+	// Route::any('/add_employee/{id}', 'UserController@add_employee_for_employer');
 
-	Route::any('/update_employee_status_for_employer/{id}', 'UserController@update_employee_status_for_employer');
-	Route::any('/delete_employee_for_employer/{id}', 'UserController@delete_employee_for_employer');
+	// Route::any('/edit_employee/{id}', 'UserController@edit_employee_for_employer');
+	// Route::any('/view_employee/{id}', 'UserController@view_employee_for_employer');
+
+	// Route::any('/update_employee_status_for_employer/{id}', 'UserController@update_employee_status_for_employer');
+	// Route::any('/delete_employee_for_employer/{id}', 'UserController@delete_employee_for_employer');
 
 });
 
-Route::any('userlogout', 'HomeController@userlogout');
+Route::any('userlogout', 'frontend\HomeController@userlogout');
+
 
 
 /*Admin Routes Placed Here*/
-Route::any('admin/get_employees_for_employer', 'UserController@get_employees_for_employer');
 
-Route::get('/admin','AdminController@index');
-Route::any('/admin/login','AdminController@index');
-Route::any('/admin/dashboard','DashboardController@index');
+Route::group(['prefix'=>'admin'], function(){
+	
+	Route::any('get_employees_for_employer', 'frontend\EmployeesController@ajax_getEmployees');
 
-Route::any('/admin/employers','UserController@index');
-Route::any('admin/employees/{id}', 'UserController@viewAllEmployeesOfEmployer');
+	Route::get('/','AdminController@index')->name('admin.home');
+	Route::any('login','AdminController@index');
+	Route::any('dashboard','DashboardController@index');
 
-Route::get('admin/update_employer_status/{id}', 'UserController@update_employer_status');
-Route::get('admin/update_employee_status/{id}', 'UserController@update_employee_status');
+	Route::any('employers','UserController@index');
+	Route::any('employees/{id}', 'UserController@viewAllEmployeesOfEmployer');
 
-Route::get('admin/delete_employee/{id}', 'UserController@delete_employee');
-Route::get('admin/delete_locations/{id}', 'UserController@delete_locations');
+	Route::get('update_employer_status/{id}', 'UserController@update_employer_status');
+	Route::get('update_employee_status/{id}', 'UserController@update_employee_status');
 
-Route::any('admin/edit_employer/{id}', 'UserController@edit_employer');
-Route::any('admin/edit_employee/{id}', 'UserController@edit_employee');
+	Route::get('delete_employee/{id}', 'UserController@delete_employee');
+	Route::get('delete_locations/{id}', 'UserController@delete_locations');
 
-Route::any('admin/add_employer', 'UserController@add_employer');
-Route::any('admin/add_employee/{id}', 'UserController@add_employee');
-Route::any('admin/view_employee/{id}', 'UserController@view_employee');
+	Route::any('edit_employer/{id}', 'UserController@edit_employer');
+	Route::any('edit_employee/{id}', 'UserController@edit_employee');
 
-Route::any('admin/get_employees', 'UserController@get_employees');
-Route::any('admin/get_employers', 'UserController@get_employers');
-Route::any('admin/get_locations', 'UserController@get_locations');
+	Route::any('add_employer', 'UserController@add_employer');
+	Route::any('add_employee/{id}', 'UserController@add_employee');
+	Route::any('view_employee/{id}', 'UserController@view_employee');
 
-Route::get('admin/logout', 'AdminController@logout');
-Route::get('admin/employer_login/{id}', 'UserController@loginAsEmployer');
+	Route::any('get_employees', 'UserController@get_employees');
+	Route::any('get_employers', 'UserController@get_employers');
+	Route::any('get_locations', 'UserController@get_locations');
 
-Route::any('admin/delete_employer/{id}', 'UserController@delete_employer');
+	Route::get('logout', 'AdminController@logout');
+	Route::get('employer_login/{id}', 'UserController@loginAsEmployer');
+
+	Route::any('delete_employer/{id}', 'UserController@delete_employer');
+});
 /*Admin Routes End Here*/
 
 

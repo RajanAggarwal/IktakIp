@@ -357,7 +357,7 @@ class UserController extends Controller
          foreach ($filteredResults as $key => $value) {
             $nestedData=array(); 
            /*  $status = ($value->status=='Active') ? "<a title='make Inactive' href=".url('admin/update_employer_status',base64_encode(convert_uuencode($value->id)))." class='btn btn-xs btn-success'><i class='fa fa-power-off'></i></a>" : "<a title='make Active' href=".url('admin/update_employer_status',base64_encode(convert_uuencode($value->id)))." class='btn btn-xs btn-warning'><i class='fa fa-ban'></i></a>"; */
-            $actions = " <a href=".url('locations',base64_encode(convert_uuencode($value->id)))." class='btn btn-xs btn-info' title='Edit details'><i class='fa fa-edit'></i></a> <a href=".url('admin/delete_locations',$value->id)." class='btn btn-xs btn-danger' title='Delete Employer'><i class='fa fa-trash'></i></a>" ; 
+            $actions = " <a href=" . route('locations.edit', $value->id) . " class='btn btn-xs btn-info' title='Edit details'><i class='fa fa-edit'></i></a> <a href=" . route('locations.destroy', $value->id) . " class='btn btn-xs btn-danger del-rec' record-id='" . $value->id . "' title='Delete Employer'><i class='fa fa-trash'></i></a>" ; 
             /* $image = asset('images/company_logo').'/'.($value->company_logo ? $value->company_logo:'no_image.png'); 
             $nestedData[] = '<img src="'.$image.'" height="50px" width="50px">';*/
             $nestedData[] = $value->location_name;
@@ -394,12 +394,12 @@ class UserController extends Controller
         }
     }
 	
-   //Show the page for all employees of Particular Employer
-    public function viewAllEmployeesOfEmployerToEployer(Request $request,$id=null){ 
+   // Descarded
+    /*public function viewAllEmployeesOfEmployerToEployer(Request $request,$id=null){
             $employerID = convert_uudecode(base64_decode($id));
             $_SESSION['active_tab']=2;
             return view('employer.employees',compact('employerID')); 
-    }	
+    }*/	
 
      public function loginAsEmployer(Request $request,$id=null){
         if(Session::has('adminSession')){
@@ -478,67 +478,6 @@ class UserController extends Controller
         echo json_encode($json_data); 
     }
 
-    //Get all employees data of a particular employee
-    public function get_employees_for_employer(){ 
-		$_SESSION['active_tab']=2;
-        $requestData= $_REQUEST;
-        $employerID = $requestData['empId'];
-        $columns = array( 
-        // datatable column index  => database column name
-            0 =>'id', 
-            1 =>'name', 
-            2 => 'email',
-            3 => 'job_title',
-            4 => 'mobile_number',
-            5=>'actions'
-
-        );
-        
-        // getting total number records without any search
-        $results = DB::select("SELECT id FROM Employees WHERE deleted !=1 AND employer_id = $employerID ORDER BY id ASC");
-        $totalData = count($results);
-        
-        $sql = "SELECT id,employer_id, name, email,job_title,mobile_number,created_at,work_location,shift_type,status";
-        $sql.=" FROM employees WHERE deleted != 1 AND employer_id = $employerID";
-        if( !empty($requestData['search']['value']) ) {   
-        // if there is a search parameter, $requestData['search']['value'] contains search parameter
-            $sql.=" AND ( name LIKE '%".$requestData['search']['value']."%' ";    
-            
-            $sql.=" OR email LIKE '%".$requestData['search']['value']."%'";
-            $sql.=" OR job_title LIKE '%".$requestData['search']['value']."%'";
-            $sql.=" OR mobile_number LIKE '%".$requestData['search']['value']."%'";
-         }
-        $totalFiltered = DB::select($sql);
-        $totalFiltered = count($totalFiltered);
-        $sql.=" ORDER BY ". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['length']." OFFSET ".$requestData['start']."   ";
-
-        $filteredResults = DB::select($sql);
-        $data = array();
-
-        foreach ($filteredResults as $key => $value) {
-            $nestedData=array(); 
-            $status = ($value->status=='Active') ? "<a title='make Inactive' href=".url('/update_employee_status_for_employer',base64_encode(convert_uuencode($value->id)))."  class='btn btn-xs btn-success' ><i class='fa fa-power-off'></i></a>" : "<a title='make Active' href=".url('/update_employee_status_for_employer',base64_encode(convert_uuencode($value->id)))."  class='btn btn-xs btn-warning'><i class='fa fa-ban'></i></a>"; 
-            $actions = $status."<a title='Edit' href=".url('edit_employee',base64_encode(convert_uuencode($value->id)))." class='btn btn-xs btn-info'><i class='fa fa-edit'></i></a> <a  title='Delete' href=".url('delete_employee_for_employer',base64_encode(convert_uuencode($value->id)))." class='btn btn-xs btn-danger'><i class='fa fa-trash'></i></a> <a href=".url('view_employee',base64_encode(convert_uuencode($value->id)))."  class='btn btn-xs btn-warning'><i class='fa fa-eye'  title='View Profile'></i></a> ";
-             /*$actions = "<div class='btn-group'> <button data-toggle='dropdown' class='btn btn-xs btn-primary dropdown-toggle' type='button' aria-expanded='false'>Action <span class='caret'></span> </button> <ul role='menu' class='dropdown-menu'> <li><a href=".url('admin/view_employee',base64_encode(convert_uuencode($value->id)))." >View</a> </li> <li class='divider'></li><li>".$status."</li> <li class='divider'></li> <li><a href=".url('admin/edit_employee',base64_encode(convert_uuencode($value->id)))." >Edit</a> </li> <li class='divider'></li> <li><a href=".url('admin/delete_employee',base64_encode(convert_uuencode($value->id))).">Delete</a> </li> </ul> </div>";*/
-            $nestedData[] = '#'.$value->employer_id.$value->id;
-            $nestedData[] = ucfirst($value->name);
-            $nestedData[] = $value->email;
-            $nestedData[] = $value->job_title;
-            $nestedData[] = $value->mobile_number;
-            $nestedData[] = $actions;
-            $data[] = $nestedData;
-        }
-        //debug($data);die;
-        $json_data = array(
-                    "draw"            => intval( $requestData['draw'] ),   
-                    "recordsTotal"    => intval( $totalData ),  // total number of records
-                    "recordsFiltered" => intval( $totalFiltered ), // total number of records after searching,
-                    "data"            => $data   // total data array
-                    );
-
-        echo json_encode($json_data); 
-    }
-
     public function edit_employee(Request $request,$id=null){
         if(Session::has('adminSession')){
             $_SESSION['active_tab']=2;
@@ -595,7 +534,7 @@ class UserController extends Controller
         }
     }
 
-    public function edit_employee_for_employer(Request $request,$id=null){ 
+    /*public function edit_employee_for_employer(Request $request,$id=null){ 
             $_SESSION['active_tab']=2;
             $employeeId = convert_uudecode(base64_decode($id));
             $userDetails = Employee::find($employeeId);
@@ -603,7 +542,7 @@ class UserController extends Controller
             $type='edit';
             $formAction='edit_employee';
             /*echo $userDetails['name'];
-            debug($userDetails);die;*/
+            debug($userDetails);die;*//*
             $data = $request->input();
 
             if(!empty($data)){
@@ -616,7 +555,7 @@ class UserController extends Controller
                     $userDetails = $data;
                     Session::flash('flash_message_error', 'Mobile number already exist');
                     return view('employer.edit_employee',compact('userDetails','employerID','type','formAction','employeeId'));
-                }else{       
+                }else{
                     $employerID = $data['employerID'];
                     $employeeId = $data['employeeId'];
                     $userDetails = Employee::find($data['employeeId']);
@@ -643,7 +582,7 @@ class UserController extends Controller
                 }  
             }
             return view('employer.edit_employee',compact('userDetails','employerID','type','formAction','employeeId')); 
-    }
+    }*/
     public function add_employee(Request $request,$id=null){
         if(Session::has('adminSession')){
             $_SESSION['active_tab']=2;
@@ -700,7 +639,7 @@ class UserController extends Controller
         }
     }
 
-    public function add_employee_for_employer(Request $request,$id=null){ 
+    /*public function add_employee_for_employer(Request $request,$id=null){ 
             $_SESSION['active_tab']=2;
             $type='add';
             $employerID = convert_uudecode(base64_decode($id));
@@ -749,7 +688,7 @@ class UserController extends Controller
             }else{
                 return view('employer.edit_employee',compact('type','formAction','employerID','userDetails','employeeId'));
             } 
-    }
+    }*/
 
     function update_employee_status(Request $request,$id){
         if(Session::has('adminSession')){ 
@@ -782,7 +721,7 @@ class UserController extends Controller
         }
     }
 	
-    function update_employee_status_for_employer(Request $request,$id){
+    /*function update_employee_status_for_employer(Request $request,$id){
 			$_SESSION['active_tab']=2;
             $id = convert_uudecode(base64_decode($id));
             if(!empty($id)){ 
@@ -807,7 +746,7 @@ class UserController extends Controller
                 Session::flash('flash_message_error', 'Something wents wrong, Please try again later.');
                 return view('employer.employees',compact('employerID'));
             } 
-    }
+    }*/
 
     function delete_employee(Request $request,$id){
         if(Session::has('adminSession')){ 
@@ -835,7 +774,7 @@ class UserController extends Controller
         }
     }
 	
-    function delete_employee_for_employer(Request $request,$id){ 
+    /*function delete_employee_for_employer(Request $request,$id){ 
 			$_SESSION['active_tab']=2;
             $id = convert_uudecode(base64_decode($id));
             if(!empty($id)){ 
@@ -855,7 +794,7 @@ class UserController extends Controller
                 Session::flash('flash_message_error', 'Something wents wrong, Please try again later.');
                 return view('employer.employees',compact('employerID'));
             } 
-    }
+    }*/
 
     function checkAlreayExistOrNot($table,$field,$value,$id){
         $data = DB::table($table)
@@ -886,10 +825,10 @@ class UserController extends Controller
         }
     }
 
-     public function view_employee_for_employer(Request $request,$id=null){
+     /*public function view_employee_for_employer(Request $request,$id=null){
             $_SESSION['active_tab']=2;
             $employerID = convert_uudecode(base64_decode($id));
             $userDetails = Employee::find($employerID);
             return view('employer.view_employee',compact('userDetails'));
-    }
+    }*/
 }
