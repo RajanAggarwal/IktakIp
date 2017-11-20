@@ -33,7 +33,7 @@ Route::group(['middleware'=>'VerifyEmployer'], function(){
 		Route::post('locations', 'LocationsController@store')->name('locations.store');
 		Route::get('locations/{id}/edit', 'LocationsController@edit')->name('locations.edit');
 		Route::patch('locations/{id}', 'LocationsController@update')->name('locations.update');
-		Route::delete('list_locations/{id}', 'LocationsController@destroy')->name('locations.destroy');
+		Route::delete('locations/{id}', 'LocationsController@destroy')->name('locations.destroy');
 
 		// Employees
 		Route::get('employees', 'EmployeesController@index')->name('employees.index');
@@ -43,6 +43,9 @@ Route::group(['middleware'=>'VerifyEmployer'], function(){
 		Route::patch('employees/{id}', 'EmployeesController@update')->name('employees.update');
 		Route::delete('employees/{id}', 'EmployeesController@destroy')->name('employees.destroy');
 		Route::get('employees/{id}/update-status', 'EmployeesController@updateStatus')->name('employees.update_status');
+		Route::get('reports', 'EmployeesController@ajax_reports')->name('ajax.employees.reports');
+		Route::get('employees/current-locations', 'EmployeesController@ajax_currentLocations')->name('ajax.employees.current_locations');
+		Route::get('employees/working-hours', 'EmployeesController@ajax_workingHours')->name('ajax.employees.working_hours');
 	
 	});
 

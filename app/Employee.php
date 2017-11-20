@@ -20,4 +20,9 @@ class Employee extends Model
     {
     	return $this->hasMany("App\EmployeeCurrentLocation");
     }
+
+    public function reports()
+    {
+        return $this->hasMany("App\Report");
+    }
 }

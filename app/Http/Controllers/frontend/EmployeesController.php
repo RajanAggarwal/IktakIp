@@ -11,6 +11,7 @@ use Hash;
 use Auth;
 
 use App\Employee;
+use App\EmployeeCurrentLocation;
 
 /**
 * 
@@ -289,6 +290,129 @@ class EmployeesController extends Controller
                     "data"            => $data   // total data array
                     );
 
-        echo json_encode($json_data); 
+        echo json_encode($json_data);
+    }
+
+
+    public function ajax_reports( Request $request )
+    {
+    	$date = $request->date;
+    	$employee_count = Employee::count();
+    	$employees = Employee::orderBy('id')->offset($request->start)->limit($request->length)->get();
+    	$data = [];
+    	
+    	for( $i=0; $i<count($employees); $i++ )
+    	{
+    		$employee_id = $employees[$i]->id;
+    		$query = "SELECT * FROM reports WHERE employee_id = $employee_id AND created_at::text LIKE '$date%'";
+    		$report = DB::select( $query );
+    		// $employees[$i]->report = $report;
+    		$data[$i][] = '<span employee-id="' . $employees[$i]->id . '">' . ucfirst($employees[$i]->name) . ' ' . ucfirst($employees[$i]->surname) . '</span>';
+    		$data[$i][] = @$report[0]->clock_in_time;
+    		$data[$i][] = @$report[0]->clock_in_location;
+    		$data[$i][] = @$report[0]->clock_out_time;
+    		$data[$i][] = @$report[0]->clock_out_location;
+    	}
+        
+        $json_data = array(
+                    "draw"            => intval( $request->draw ),   
+                    "recordsTotal"    => intval( $employee_count ),  // total number of records
+                    "recordsFiltered" => intval( $employee_count ), // total number of records after searching,
+                    "data"            => $data   // total data array
+                    );
+
+        echo json_encode($json_data);
+    }
+
+    public function ajax_currentLocations(Request $request)
+    {
+    	$response = [
+    		'success' => null
+    	];
+
+    	$employeeId = $request->employeeId;
+    	$query = "SELECT * FROM employees WHERE id = $employeeId LIMIT 1";
+    	$result = DB::select( $query );
+    	$employee = $result[0];
+    	if( $employee )
+    	{
+    		$minDate = $request->minDate;
+    		$maxDate = $request->maxDate;
+    		$query = "SELECT * FROM employee_current_locations WHERE employee_id = $employeeId AND created_at::text >= '$minDate' AND created_at::text <= '$maxDate'";
+    		$result = DB::select( $query );
+    		$employee->current_locations = $result;
+    		$response['success'] = 1;
+    		$response['data']['employee'] = $employee;
+    	}
+
+    	return json_encode( $response );
+    }
+
+    public function ajax_workingHours(Request $request)
+    {
+    	$response = [
+    		"success" => null
+    	];
+    	// clock_in_time
+
+    	$employee_id = $request->employee_id;
+    	$employee = Employee::find($employee_id);
+    	if( !$employee )
+    	{
+    		$response['message'] = "Employee does not exists.";
+    	}
+
+    	$query = "SELECT * FROM reports WHERE employee_id = $employee_id";
+    	// $day_report  = DB::select($query . " AND created_at::text LIKE '2017-11-01%'");
+    	$day_report  = DB::select($query . " AND created_at::text LIKE '" . date('Y-m-d') . "%'");
+    	$day_hours = 0;
+    	foreach($day_report as $report)
+    	{
+    		$clock_in_time  = date_create( $report->clock_in_time );
+			$clock_out_time = date_create( $report->clock_out_time );
+			$diff  = date_diff($clock_in_time, $clock_out_time);
+	    	$hours = $diff->format('%h');
+	    	$day_hours += $hours;
+    	}
+
+    	$week_report = DB::select($query . " AND created_at::text >= '" . date('Y-m-d', strtotime('-7 days')) . "' AND created_at::text <= '" . date('Y-m-d') . "'");
+    	$week_hours = 0;
+    	foreach($week_report as $report)
+    	{
+    		$clock_in_time  = date_create( $report->clock_in_time );
+			$clock_out_time = date_create( $report->clock_out_time );
+			$diff  = date_diff($clock_in_time, $clock_out_time);
+	    	$hours = $diff->format('%h');
+	    	$week_hours += $hours;
+    	}
+
+    	$month_report = DB::select($query . " AND created_at::text >= '" . date('Y-m-d', strtotime('-1 month')) . "' AND created_at::text <= '" . date('Y-m-d') .  "'");
+    	$month_hours = 0;
+    	foreach($month_report as $report)
+    	{
+    		$clock_in_time  = date_create( $report->clock_in_time );
+			$clock_out_time = date_create( $report->clock_out_time );
+			$diff  = date_diff($clock_in_time, $clock_out_time);
+	    	$hours = $diff->format('%h');
+	    	$month_hours += $hours;
+    	}
+
+    	$year_report = DB::select($query . " AND created_at::text >= '" . date('Y-m-d', strtotime('-1 year')) . "' AND created_at::text <= '" . date('Y-m-d') .  "'");
+    	$year_hours = 0;
+    	foreach($year_report as $report)
+    	{
+    		$clock_in_time  = date_create( $report->clock_in_time );
+			$clock_out_time = date_create( $report->clock_out_time );
+			$diff  = date_diff($clock_in_time, $clock_out_time);
+	    	$hours = $diff->format('%h');
+	    	$year_hours += $hours;
+    	}
+
+    	$response['data']['day_hours']   = $day_hours;
+    	$response['data']['week_hours']  = $week_hours;
+    	$response['data']['month_hours'] = $month_hours;
+    	$response['data']['year_hours']  = $year_hours;
+
+    	return json_encode($response);
     }
 }

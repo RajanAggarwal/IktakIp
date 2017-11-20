@@ -27,7 +27,6 @@
 				<div class="panel-heading">Dashboard</div>
 				<div class="panel-body">
 				    <div class="col-md-9">
-				        @include('notifications')
 					   <div id="mapCanvas">
 					   </div>
 					</div>

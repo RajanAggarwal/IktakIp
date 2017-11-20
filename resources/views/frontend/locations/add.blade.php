@@ -151,7 +151,6 @@ function initialize() {
 		});
 		marker.Circle.bindTo('map', marker);
 		marker.Circle.bindTo('center', marker, 'position');
-
 }
 
 // Onload handler to fire off the app.
