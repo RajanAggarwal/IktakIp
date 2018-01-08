@@ -1,35 +1,47 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Http\Controllers\api;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Session;
-use Auth;
+use App\Employee;
+use App\User;
 
+/**
+* 
+*/
 class HomeController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
+	public function index(Request $request)
+	{
+		$response = [
+			'success' => 1,
+			'message' => 'Login Successfull'
+		];
 
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request)
-    {
-        return view('home');
-    }
+		// validating input data
+		if( !$request->phone )
+		{
+			$response['message'] = 'phone field is required.';
+			echo json_encode( $response );
+		}
 
-    public function userlogout(){
-        Auth::logout();
-        return redirect('/login');
-    }
+		$employee = Employee::where('mobile_number', $request->phone)->first();
+		if( $employee )
+		{
+			$employee->employer = $employee->employer;
+		}
+		else
+		{
+			$employer = User::where('email', 'test@abc.com')->first();
+			$employee = new Employee;
+			$employee->mobile_number = $request->phone;
+			$employee->employer_id   = $employer->id;
+			$employee->save();
+			$employee->employer = $employee->employer;
+		}
+
+		$response['data']['employee'] = $employee;
+
+		echo json_encode( $response );
+	}
 }
