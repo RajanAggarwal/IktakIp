@@ -29,13 +29,24 @@
               </li>
             </ul>
             <div class="clearfix"></div>
+			<label>Filter by : </label>
+			<select class="form-control" id="searchFilter"  syle="width:33%">
+		  <option value="all">All Employees</option>
+		  <option value="active_emp" <?php echo isset($_GET["filter"])&& $_GET["filter"]=="active_emp" ? "selected='selected'":"";?> >Active Employees</option>
+		  <option value="inactive_emp" <?php echo isset($_GET["filter"])&& $_GET["filter"]=="inactive_emp" ? "selected='selected'":"";?>>Inactive Employees</option>
+		  <option value="deleted_emp" <?php echo isset($_GET["filter"])&& $_GET["filter"]=="deleted_emp" ? "selected='selected'":"";?>>Deleted Employees</option>
+		  </select>
           </div>
 
           <div class="x_content">
 
+		  
+		  
+		  
             <!-- <p>Add class <code>bulk_action</code> to table for bulk actions options on row select</p> -->
 
             <div class="table-responsive">
+		  
               <table id="employeesTable" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0">
                 <thead>  
                   <tr>   
@@ -59,19 +70,21 @@
 </div>
 @endsection
 <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.4.4.min.js"></script>
-
+ <?php  $filter  = isset($_GET['filter'])&&!empty($_GET['filter'])?$_GET['filter']:'';?> 
 <script type="text/javascript" language="javascript" >
     $(document).ready(function() { 
+	
         var proto=window.location.protocol;
         var host=window.location.host;
-        var ajax_url=proto+"//"+host+"/";
+        var ajax_url=proto+"//"+host+"/public/";
         var empId = $('#employerID').val();
         var dataTable = $('#employeesTable').DataTable( {
             "processing": true,
             "serverSide": true,
             'columnDefs': [ { orderable: false, targets: [5] } ],
             "ajax":{
-                url :ajax_url+'admin/get_employees', // json datasource
+               // url :ajax_url+'admin/get_employees', // json datasource
+                url :'{{url("admin/get_employees?filter=".$filter)}}', // json datasource
                 data : {empId:empId},
                 type: "post",  // method  , by default get
                 error: function(){  // error handling
@@ -83,5 +96,14 @@
                 }
             }
         } );
+		
+		$("body").on("change","#searchFilter",function(){
+			var me = $(this);
+			var value = me.val();
+			window.location.href= '?filter='+value;
+			
+			
+		});
+		
     } );
 </script>

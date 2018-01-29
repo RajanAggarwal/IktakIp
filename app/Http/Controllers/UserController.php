@@ -21,7 +21,7 @@ class UserController extends Controller
     public function __construct()
     {
         //$this->middleware('auth');
-        $_SESSION['active_tab']=2;
+        // 
     }
 
     /**
@@ -32,8 +32,21 @@ class UserController extends Controller
    
     public function index(Request $request){
         if(Session::has('adminSession')){
-            $_SESSION['active_tab']=2;
-            return view('backend.user.index');
+            $filter_by = "none";
+            if( isset($_GET['active']) && ($_GET['active'] == 1) )
+            {
+                $filter_by = "active";
+            }
+            elseif ( isset($_GET['inactive']) && ($_GET['inactive'] == 1) )
+            {
+                $filter_by = "inactive";
+            }
+            elseif( isset($_GET['deleted']) && ($_GET['deleted'] == 1) )
+            {
+                $filter_by = "deleted";
+            }
+
+            return view('backend.user.index', compact('filter_by'));
         }
         else{
             Session::flash('flash_message_error', 'You have to login to access this page');
@@ -263,8 +276,9 @@ class UserController extends Controller
 	}
 
     public function get_employers(){ 
+	 
         $requestData= $_REQUEST;
-
+		$filter  = isset($_GET['filter'])&&!empty($_GET['filter'])?$_GET['filter']:'';
         $columns = array( 
         // datatable column index  => database column name
             0 =>'company_logo', 
@@ -275,13 +289,24 @@ class UserController extends Controller
             5=>'actions'
 
         );
-        
+		/**Filter conditions**/
+		$where = " WHERE 1=1 ";
+		if($filter =='deletedusers'){
+			$where .=" and deleted=1";
+		}else if($filter =='inactiveusers'){
+			$where .=" and status ='Inactive' and deleted !=1";
+			
+		}else if($filter =='activeusers'){
+			$where .=" and status ='Active' and deleted !=1";
+		} 
+		
+      
         // getting total number records without any search
-        $results = DB::select("SELECT id FROM users WHERE deleted !=1 ORDER BY id ASC");
+        $results = DB::select("SELECT id FROM users  $where ORDER BY id ASC");
         $totalData = count($results);
         
         $sql = "SELECT id, name, email,created_at,company_logo,status";
-        $sql.=" FROM users WHERE deleted != 1";
+        $sql.=" FROM users $where";
         if( !empty($requestData['search']['value']) ) {   
         // if there is a search parameter, $requestData['search']['value'] contains search parameter
             $sql.=" AND ( name LIKE '".$requestData['search']['value']."%' ";    
@@ -340,7 +365,9 @@ class UserController extends Controller
         $totalData = count($results);
         
         $sql = "SELECT id, latitude, longitude, location_name, location_address, employer_id";
-        $sql.=" FROM employer_locations ";
+        $sql.=" FROM employer_locations Where 1=1  and employer_id='".AUTH::user()->id."'";
+		
+		
         if( !empty($requestData['search']['value']) ) {   
         // if there is a search parameter, $requestData['search']['value'] contains search parameter
             $sql.=" AND ( name LIKE '".$requestData['search']['value']."%' ";    
@@ -432,21 +459,40 @@ class UserController extends Controller
             5=>'actions'
 
         );
-        
+		$filter  = isset($_GET['filter'])&&!empty($_GET['filter'])?$_GET['filter']:'';
+		/**Filter conditions**/
+		 $where='';
+		if($filter =='deleted_emp'){
+			 $where .=" and deleted=1 ";
+		}else if($filter =='inactive_emp'){
+			 $where .=" and status ='Inactive' and deleted !=1 ";
+			
+		}else if($filter =='active_emp'){
+			 $where .=" and status ='Active' and deleted !=1 " ;
+		} 
+		
+		if($employerID!=0){
+			$empWhere = " employer_id = $employerID ";
+			
+		}else{
+			$empWhere = " 1=1";
+		}
+		
         // getting total number records without any search
-        $results = DB::select("SELECT id FROM Employees WHERE deleted !=1 AND employer_id = $employerID ORDER BY id ASC");
+        $results = DB::select("SELECT id FROM Employees WHERE $empWhere  $where ORDER BY id ASC");
         $totalData = count($results);
         
         $sql = "SELECT id,employer_id, name, email,job_title,mobile_number,created_at,work_location,shift_type,status";
-        $sql.=" FROM employees WHERE deleted != 1 AND employer_id = $employerID";
+        $sql.=" FROM employees WHERE   $empWhere $where"; 
         if( !empty($requestData['search']['value']) ) {   
         // if there is a search parameter, $requestData['search']['value'] contains search parameter
             $sql.=" AND ( name LIKE '%".$requestData['search']['value']."%' ";    
             
             $sql.=" OR email LIKE '%".$requestData['search']['value']."%'";
             $sql.=" OR job_title LIKE '%".$requestData['search']['value']."%'";
-            $sql.=" OR mobile_number LIKE '%".$requestData['search']['value']."%'";
+            $sql.=" OR mobile_number LIKE '%".$requestData['search']['value']."%')";
          }
+		 
         $totalFiltered = DB::select($sql);
         $totalFiltered = count($totalFiltered);
         $sql.=" ORDER BY ". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['length']." OFFSET ".$requestData['start']."   ";
@@ -831,4 +877,21 @@ class UserController extends Controller
             $userDetails = Employee::find($employerID);
             return view('employer.view_employee',compact('userDetails'));
     }*/
+/**Show all company employees**/
+public function showallEmployees(){
+ 
+	 if(Session::has('adminSession')){
+          
+            $_SESSION['active_tab']=2;
+            return view('backend.user.all-employees');
+        }
+        else{
+            Session::flash('flash_message_error', 'You have to login to access this page');
+            return redirect('admin');
+        }
+	
+	
 }
+	
+	
+	}

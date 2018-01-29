@@ -56,9 +56,10 @@ class RegisterController extends Controller {
      * @return \Illuminate\Http\RedirectResponse
      */
     public function register(Request $request)
-    {
-        $validator = $this->validator($request->all());
-        
+    { 
+		$request['name'] = $this->clean($request['name']);
+		$validator = $this->validator($request->all());
+  
         if ($validator->fails()) {
             $this->throwValidationException(
                 $request, $validator
@@ -67,12 +68,16 @@ class RegisterController extends Controller {
 
         $user = $this->create($request->all());
 
-        //$this->EmailService->sendActivationMail($user);
+         $this->EmailService->sendActivationMail($user);
 
-        return redirect('/login')->with('status','Registered Successfully');
-        //return redirect('/login')->with('status', trans('authEmail.mailSend'));
+        //return redirect('/login')->with('status','Registered Successfully');
+        return redirect('/login')->with('status', trans('authEmail.mailSend'));
     }
 
+	/***Clean Strings*/
+	public function clean($string) {
+		return preg_replace('/[^A-Za-z0-9\-]/', ' ', $string); // Removes special chars.
+	}
     /**
      * Get a validator for an incoming registration request.
      *

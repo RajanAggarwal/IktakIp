@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Employee;
 use App\User;
+use DB;
 
 /**
 * 
@@ -14,8 +15,8 @@ class HomeController extends Controller
 	public function index(Request $request)
 	{
 		$response = [
-			'success' => 0,
-			'message' => ''
+			'success' => 1,
+			'message' => 'Login Successfull'
 		];
 
 		// validating input data
@@ -28,8 +29,6 @@ class HomeController extends Controller
 		$employee = Employee::where('mobile_number', $request->phone)->first();
 		if( $employee )
 		{
-			$response['success'] = 1;
-			$response['message'] = 'Login Successfull';
 			$employee->employer = $employee->employer;
 		}
 		else
@@ -45,5 +44,30 @@ class HomeController extends Controller
 		$response['data']['employee'] = $employee;
 
 		echo json_encode( $response );
+	}
+	
+	/***Make Employee Logout**/
+	public function empLogout(Request $request){
+		$empId = isset($request['user_id']) && !empty($request['user_id'])?$request['user_id']:'';
+		
+		if( !$empId )
+		{
+			$response['status'] =0;
+			$response['message'] = 'Emp id required.';
+			 
+		}else{
+			$response['status'] =1;
+			$response['message'] = 'logout successfully.';
+			
+		}
+		//$report = DB::table("reports")->where("employee_id",$empId)->where("status","0")->count();
+		//if($report>0){
+			
+		//$data = array("status"=>1,"updated_at"=>date("Y-m-d H:i:s"));
+		//DB::table("reports")->where("employee_id",$empId)->where("status","0")->update($data);
+		//}
+		
+		echo json_encode($response);
+		die;
 	}
 }

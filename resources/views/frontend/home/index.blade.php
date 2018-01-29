@@ -186,6 +186,21 @@
                                 </table>
                             </div>
                         </div>
+						 <div class="col-md-12" style="margin-top:20px;">
+						    <h4>Total Working Hours</h4>
+							<table id="tableReports" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0">
+                                    <thead>  
+                                        <tr>    
+                                           <th>Clock In Time</th>
+                                            <th>Clock In Location</th>
+                                            <th>Clock Out Time</th>
+                                            <th>Clock Out Location</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="data_div">
+                                    </tbody>
+                                </table>
+							</div>
                         <div class="col-md-12" style="margin-top:20px;">
 						    <h4>Total Working Hours</h4>
 						    <table class="table table-striped dt-responsive nowrap" cellspacing="0">
@@ -412,9 +427,13 @@
 
                         // setting description content
                         $("#EmpName").html( employee.name + ' ' + employee.surname );
+                        empName = employee.name + ' ' + employee.surname;
                         $("#EmpWorkLocation").html( employee.work_location );
-                        $("#EmpCurrentTime").html( moment( employee.current_location.time ).format('LLL') );
+                        empWorkLocation = employee.work_location;
+                        $("#EmpCurrentTime").html( moment( employee.current_location.created_at ).format('LLL') );
+                        empCurrentTime = moment( employee.current_location.created_at ).format('LLL');
                         $("#EmpShift").html( employee.shift_type );
+                        empShift = employee.shift_type;
                         
                         $(".list-unstyled li").show();
                     }
@@ -434,9 +453,8 @@
     });
     
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD-hzNuPZ8dzAX83MCrkdDFNTcMx4LUrJo&callback=renderMap" async defer></script>
 
-
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
 
 
 <!-- //////////////////////////////////////////////////////////////////////////////////// -->
@@ -691,6 +709,18 @@
         		dataType : 'JSON',
         		success : function(response){
                     // console.log(response);
+					console.log(response);
+					var HTML ='';
+					if(response.data.todaySlotsRecords>0){
+						$.each(response.data.todaySlots,function(key,val){
+							HTML += ' <tr><td>'+val.clock_in_time+'</td><td>'+val.clock_in_location+'</td><td>'+val.clock_out_time+'</td><td>'+val.clock_out_location+'</td></tr>';
+							
+						});
+						$("#data_div").html(HTML);
+					}else{
+						$("#data_div").html('<tr><td colspan="4">No record found!</td></tr>');
+					}
+					
                     $("#dayHours").html( response.data.day_hours );
                     $("#weekHours").html( response.data.week_hours );
                     $("#monthHours").html( response.data.month_hours );

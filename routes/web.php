@@ -13,7 +13,7 @@
 /*
 Route::get('/', function () {
     return view('welcome');
-});*/
+});52.58.120.50*/
 
 Auth::routes();
 
@@ -87,6 +87,7 @@ Route::group(['prefix'=>'admin'], function(){
 	Route::any('dashboard','DashboardController@index');
 
 	Route::any('employers','UserController@index');
+	Route::any('all-employers','UserController@showallEmployees');
 	Route::any('employees/{id}', 'UserController@viewAllEmployeesOfEmployer');
 
 	Route::get('update_employer_status/{id}', 'UserController@update_employer_status');
@@ -114,3 +115,7 @@ Route::group(['prefix'=>'admin'], function(){
 /*Admin Routes End Here*/
 
 
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');

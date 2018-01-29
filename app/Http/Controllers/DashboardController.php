@@ -26,30 +26,26 @@ class DashboardController extends Controller
      */
     public function index()
     {
-      $_SESSION['active_tab']=1;
-	  
-	  
-	  
-	  $dataArray = array();
+        $dataArray = array();
       
-      $totalEmployees = DB::table('employees')->count();
-      $activeEmployees = DB::table('employees')->where('deleted','0')->where('status','Active')->count();
-      $inActiveEmployees = DB::table('employees')->where('deleted','0')->where('status','Inactive')->count();
-      $deletedEmployees = DB::table('employees')->where('deleted','1')->count();
-      $dataArray['totalEmployees'] =$totalEmployees;
-      $dataArray['activeEmployees'] =$activeEmployees;
-      $dataArray['inActiveEmployees'] =$inActiveEmployees;
-      $dataArray['deletedEmployees'] =$deletedEmployees;
+        $totalEmployees    = DB::table('employees')->count();
+        $activeEmployees   = DB::table('employees')->where('deleted','0')->where('status','Active')->count();
+        $inActiveEmployees = DB::table('employees')->where('deleted','0')->where('status','Inactive')->count();
+        $deletedEmployees  = DB::table('employees')->where('deleted','1')->count();
+        $dataArray['totalEmployees']    = $totalEmployees;
+        $dataArray['activeEmployees']   = $activeEmployees;
+        $dataArray['inActiveEmployees'] = $inActiveEmployees;
+        $dataArray['deletedEmployees']  = $deletedEmployees;
 
-
-      $totalUsers = DB::table('users')->count();
-      $activeUsers = DB::table('users')->where('deleted','0')->where('status','Active')->count();
-      $inActiveUsers = DB::table('users')->where('deleted','0')->where('status','Inactive')->count();
-      $deletedUsers = DB::table('users')->where('deleted','1')->count();
-      $dataArray['totalUsers'] =$totalUsers;
-      $dataArray['activeUsers'] =$activeUsers;
-      $dataArray['inActiveUsers'] =$inActiveUsers;
-      $dataArray['deletedUsers'] =$deletedUsers;
-	  return view('backend.home',['data_array'=>$dataArray]);
+        $totalUsers    = DB::table('users')->count();
+        $activeUsers   = DB::table('users')->where('deleted','0')->where('status','Active')->count();
+        $inActiveUsers = DB::table('users')->where('deleted','0')->where('status','Inactive')->count();
+        $deletedUsers  = DB::table('users')->where('deleted','1')->count();
+        $dataArray['totalUsers']    = $totalUsers;
+        $dataArray['activeUsers']   = $activeUsers;
+        $dataArray['inActiveUsers'] = $inActiveUsers;
+        $dataArray['deletedUsers']  = $deletedUsers;
+        
+	   return view('backend.home',['data_array'=>$dataArray]);
     }
 }

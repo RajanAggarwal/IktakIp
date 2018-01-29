@@ -71,7 +71,8 @@
             "serverSide": true,
             'columnDefs': [ { orderable: false, targets: [5] } ],
             "ajax":{
-                url :ajax_url+'admin/get_employees_for_employer', // json datasource
+                //url :ajax_url+'admin/get_employees_for_employer', // json datasource
+                url :'{{url("admin/get_employees_for_employer")}}', // json datasource
                 data : {empId:empId},
                 type: "post",  // method  , by default get
                 error: function(){  // error handling

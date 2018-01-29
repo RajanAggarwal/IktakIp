@@ -22,5 +22,6 @@ Route::group(['namespace'=>'api'], function(){
 	Route::get('employees', 'EmployeesController@index')->name('api.employees.index');
 	Route::get('employees/{id}', 'EmployeesController@show')->name('api.employees.show');
 	Route::get('user-info', 'HomeController@index')->name('api.user_info');
+	Route::get('emp-logout', 'HomeController@empLogout');
 	Route::post('employees/{id}/current-locations', 'EmployeeCurrentLocationController@store')->name('api.employees_current_locations.store');
 });

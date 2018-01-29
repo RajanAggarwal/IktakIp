@@ -63,9 +63,15 @@
                       <li><a href="index3.html">Dashboard3</a></li>
                     </ul>
                   </li> -->
-                  <li class="<?php echo ($_SESSION['active_tab']=='1') ? 'current-page':''; ?>"><a href="{{ url('admin')}}"><i class="fa fa-home"></i> Home <span class="fa fa-chevron-right"></span></a>
+                  <li><a href="{{ url('admin')}}"><i class="fa fa-home"></i> Home </a>
                   </li>
-                  <li class="<?php echo ($_SESSION['active_tab']=='2') ? 'current-page':''; ?>"><a href="{{ url('admin/employers')}}"><i class="fa fa-users"></i> Employers <span class="fa fa-chevron-right"></span></a>
+                  <li><a><i class="fa fa-users"></i> Employers <span class="fa fa-chevron-right"></span></a>
+                    <ul class="nav child_menu">
+                        <li class="leftmenuClass listClass"><a href="{{ url('admin/employers')}}" >List</a></li>
+                        <li class="leftmenuClass activeusers"><a href="{{ url('admin/employers?filter=activeusers')}}" >Active</a></li>
+                        <li class="leftmenuClass inactiveusers"><a href="{{ url('admin/employers?filter=inactiveusers')}}" >Inactive</a></li>
+                        <li class="leftmenuClass deletedusers"><a href="{{ url('admin/employers?filter=deletedusers')}}" >Deleted</a></li>
+                    </ul>
                   </li>                 
                   <!-- <li><a href="javascript:void(0)"><i class="fa fa-laptop"></i> Landing Page <span class="label label-success pull-right">Coming Soon</span></a></li> -->
                 </ul>

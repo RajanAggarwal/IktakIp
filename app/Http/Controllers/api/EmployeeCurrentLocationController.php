@@ -24,7 +24,7 @@ class EmployeeCurrentLocationController extends Controller
 			'message' => ''
 		];
 
-		if( !$request->employee_id )
+		if( !$request->employee_id)
 		{
 			$response['message'] = "employee_id field is required.";
 			return json_encode( $response );
@@ -54,7 +54,7 @@ class EmployeeCurrentLocationController extends Controller
 			$response['message'] = "time field is required.";
 			return json_encode( $response );
 		}
-
+		$request->time = date("Y-m-d H:i:s");
 		$record = new EmployeeCurrentLocation;
 		$record->employee_id = $request->employee_id;
 		$record->lat         = $request->lat;
@@ -77,17 +77,19 @@ class EmployeeCurrentLocationController extends Controller
 
 					$date = date( 'Y-m-d', strtotime($request->time) );
 					$employee_id = $employee->id;
-					$query = "SELECT * FROM reports WHERE employee_id = $employee_id AND created_at::text LIKE '$date%' LIMIT 1";
+					$query = "SELECT * FROM reports WHERE employee_id = $employee_id AND status=0 and created_at::text LIKE '$date%' LIMIT 1";
 					$report = DB::select( $query );
+				 
 					
 					foreach( $employer_locations as $employer_location )
 					{
 						$latTo = $employer_location->latitude;
 						$lngTo = $employer_location->longitude;
-						$distance = $this->haversineGreatCircleDistance( $latFrom, $lngFrom, $latTo, $lngTo );
+					 	$distance = $this->haversineGreatCircleDistance( $latFrom, $lngFrom, $latTo, $lngTo );
+						
 						if( $distance <= 100 )
 						{
-							if( $report )
+							if(count($report)>0 )
 							{
 								$report = Report::find($report[0]->id);
 								$report->clock_out_time = $request->time;
@@ -98,6 +100,7 @@ class EmployeeCurrentLocationController extends Controller
 								$report = new Report;
 								$report->employee_id = $employee->id;
 								$report->clock_in_time = $request->time;
+								$report->status = 0;
 								$report->clock_in_location = $employer_location->location_name;
 								$report->created_at = $request->time;
 							}
@@ -108,6 +111,10 @@ class EmployeeCurrentLocationController extends Controller
 							break;
 						}
 					}
+					
+					
+					
+					
 				}
 			}
 		}

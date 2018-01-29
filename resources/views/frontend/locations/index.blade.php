@@ -78,7 +78,8 @@
             "serverSide": true,
             'columnDefs': [ { orderable: false, targets: [5] } ],
             "ajax":{
-                url :ajax_url+'admin/get_locations', // json datasource
+                //url :ajax_url+'admin/get_locations', // json datasource
+                url :'{{url("admin/get_locations")}}', // json datasource
                 type: "post",  // method  , by default get
                 error: function(){  // error handling
                     console.log('error');

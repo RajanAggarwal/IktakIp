@@ -180,7 +180,13 @@
     }else if($("input[name=job_end_date]").val() ==''){
         display_error_message('Job end date is Required','job_end_date');*/
     
-    }else if($("input[name=email]").val() ==''){
+    }else if( !($("input[name=mobile_number]").val().match(/^\d+$/)) ){
+        display_error_message('Invalid Input for Mobile Number','mobile_number');
+    }
+    else if( $("input[name=mobile_number]").val().length != 10 ){
+        display_error_message('Mobile Number must contain 10 digits','mobile_number');
+    }
+    else if($("input[name=email]").val() ==''){
         display_error_message('Email is Required','email');
    
     } else if( !isValidEmailAddress( $("input[name=email]").val() ) ) { 
