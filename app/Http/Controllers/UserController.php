@@ -436,7 +436,7 @@ class UserController extends Controller
                 throw new Exception('Error logging in');
             }else{
                 Session::put('adminUserLoggedIn', $employerID);
-                return view('home');
+                return redirect('/');
             }
         }
         else{

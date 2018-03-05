@@ -1,6 +1,7 @@
 @extends('layouts.front')
 
 @section('content')
+ 
 <style>
 
     a.top-links.active{
@@ -56,7 +57,7 @@
     }
 
     .list-unstyled li{
-        {{ Auth::user()->employees ? ( !(Auth::user()->employees[0]->current_location) ? 'display:none;' : '' ) : ''  }}
+        {{ (isset(Auth::user()->employees[0]) && !empty(Auth::user()->employees[0])) ? ( !(Auth::user()->employees[0]->current_location) ? 'display:none;' : '' ) : ''  }}
     }
 
     #tableReports td:first-child{
@@ -118,6 +119,7 @@
                                         <div class="x_content">
                                             <ul class="legend list-unstyled">
                                                 @if( !( Auth::user()->employees->isEmpty() ) )
+									
                                                 <li>
                                                     <p>
                                                         <span class="name"><b><span id="EmpName">{{ @Auth::user()->employees[0]->name . ' ' . @Auth::user()->employees[0]->surname }}</span></b></span>
@@ -275,6 +277,17 @@
     </div>
 </div>
 
+<input type="hidden" id="emp-lat" value="{!! (isset(Auth::user()->employees[0]->current_location) && !empty(Auth::user()->employees[0]->current_location) ) ? Auth::user()->employees[0]->current_location->lat : 'null' !!}">
+
+<input type="hidden" id="emp-lng" value="{!! (isset(Auth::user()->employees[0]->current_location) && !empty(Auth::user()->employees[0]->current_location) ) ? Auth::user()->employees[0]->current_location->lng : 'null' !!}">
+
+<input type="hidden" id="emp-name" value="{!! (isset(Auth::user()->employees[0]->name) && !empty(Auth::user()->employees[0]->name) ) ? Auth::user()->employees[0]->name. ' ' . @Auth::user()->employees[0]->surname : '' !!}">
+
+<input type="hidden" id="emp-work-location" value="{!! (isset(Auth::user()->employees[0]->work_location) && !empty(Auth::user()->employees[0]->work_location) ) ? Auth::user()->employees[0]->work_location : '' !!}">
+
+<input type="hidden" id="emp-current-time" value="{!! (isset(Auth::user()->employees[0]->current_location->time) && !empty(Auth::user()->employees[0]->current_location->time) ) ? date('F d, Y H:i:s', strtotime(Auth::user()->employees[0]->current_location->time)) : '' !!}">
+
+<input type="hidden" id="emp-shift-type" value="{!! (isset(Auth::user()->employees[0]->shift_type) && !empty(Auth::user()->employees[0]->shift_type) ) ? Auth::user()->employees[0]->shift_type : '' !!}">
 
 <script type="text/javascript">
 	// Click on top links
@@ -304,8 +317,10 @@
 <!-- ///////////////////////////////// Current Location ///////////////////////////////// -->
 <!-- //////////////////////////////////////////////////////////////////////////////////// -->
 
-<!-- <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script> -->
-<!-- <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB-wkrWVbqBX_eg2YkiUozNhI6zkoHhyoc"
+    ></script>
+<!--<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script> 
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>--> 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.1/moment.js"></script>
 
 <!-- Date Range Picker -->
@@ -316,15 +331,13 @@
 
     var lat, lng, map, marker, infowindow, geocoder;
     var empName, empWorkLocation, empCurrentLocation, empCurrentTime, empShift;
-    // var geocoder = new google.maps.Geocoder();
-
-    lat = {!! Auth::user()->employees[0]->current_location ? Auth::user()->employees[0]->current_location->lat : 'null' !!};
-    lng = {!! Auth::user()->employees[0]->current_location ? Auth::user()->employees[0]->current_location->lng : 'null' !!};
-
-    empName         = '{{ @Auth::user()->employees[0]->name . ' ' . @Auth::user()->employees[0]->surname }}';
-    empWorkLocation = '{{ @Auth::user()->employees[0]->work_location }}';
-    empCurrentTime  = '{{ @date('F d, Y H:i:s', strtotime(Auth::user()->employees[0]->current_location->time)) }}';
-    empShift        = '{{ @Auth::user()->employees[0]->shift_type }}';
+    var geocoder = new google.maps.Geocoder();
+    lat = $('#emp-lat').val();
+    lng = $('#emp-lng').val();
+    empName = $('#emp-name').val();
+    empWorkLocation = $('#emp-work-location').val();
+    empCurrentTime = $('#emp-current-time').val();
+    empShift = $('#emp-shift-type').val();
 
     function setCurrentLocation(pos)
     {
@@ -395,9 +408,7 @@
     // google.maps.event.addDomListener(window, 'load', renderMap);
 
     // update address
-    setInterval(function(){
-        $(document).find("#infoCurrentLocation").html( empCurrentLocation );
-    }, 500);
+    
 
     $(".emp-name").on("click", function(){
         var elmnt = $(this);
@@ -454,7 +465,7 @@
     
 </script>
 
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<!--<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>-->
 
 
 <!-- //////////////////////////////////////////////////////////////////////////////////// -->
@@ -516,29 +527,30 @@
                     if( response.success )
                     {
                         locations = response.data.employee.current_locations;
+                        
+                        locations_latLng = [];
                         if( locations.length )
                         {
-                            locations_latLng = [];
                             for( i = 0; i < locations.length; i++ )
                             {
                                 locations_latLng[i] = {lat : parseFloat(locations[i].lat), lng : parseFloat(locations[i].lng)};
                             }
-                            
-                            latLng = new google.maps.LatLng( locations_latLng[0].lat, locations_latLng[0].lng );
-
-                            locations_map = new google.maps.Map(document.getElementById('locationsMapCanvas'), {
-                                zoom: 14,
-                                center: latLng,
-                                mapTypeId: google.maps.MapTypeId.ROADMAP
-                            });
-
-                            playMap();
                         }
                         else
                         {
-                            $("#locationsMapCanvas").html('');
-                            alert("Location Not Found.");
+                            locations_latLng[0] = {lat : 0, lng : 0};
                         }
+                            
+                        latLng = new google.maps.LatLng( locations_latLng[0].lat, locations_latLng[0].lng );
+
+                        locations_map = new google.maps.Map(document.getElementById('locationsMapCanvas'), {
+                            zoom: 14,
+                            center: latLng,
+                            mapTypeId: google.maps.MapTypeId.ROADMAP
+                        });
+
+                        playMap();
+                        
                     }
                 },
                 error : function(){

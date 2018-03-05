@@ -65,7 +65,7 @@
 		</div>
 	</div>
 </div>
-<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?key={{ getenv('GOOGLE_MAP_API_KEY')}}"></script>
 <script type="text/javascript">
     function checkLocationForm()
     {

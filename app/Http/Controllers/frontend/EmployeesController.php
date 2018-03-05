@@ -340,8 +340,11 @@ class EmployeesController extends Controller
     	{
     		$minDate = $request->minDate;
     		$maxDate = $request->maxDate;
-    		$query = "SELECT * FROM employee_current_locations WHERE employee_id = $employeeId AND created_at::text >= '$minDate' AND created_at::text <= '$maxDate'";
-    		$result = DB::select( $query );
+			//$query = "SELECT * FROM employee_current_locations WHERE employee_id = $employeeId AND created_at::text >= '$minDate' AND created_at::text <= '$maxDate'";
+			$query = "SELECT * FROM employee_current_locations WHERE employee_id = $employeeId AND DATE(created_at) >= '$minDate' AND DATE(created_at) <= '$maxDate'";
+			$result = DB::select( $query );
+			//echo "<pre>";
+			//print_r($result);die;
     		$employee->current_locations = $result;
     		$response['success'] = 1;
     		$response['data']['employee'] = $employee;
