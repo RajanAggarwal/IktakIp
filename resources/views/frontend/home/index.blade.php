@@ -21,6 +21,19 @@
         margin-top:10px;
     }
 
+    #mapCanvas1 {
+        width: 100%;
+        height: 550px;
+        float: left;
+    }
+
+    #locationsMapCanvas1 {
+        width: 132%;
+        height: 550px;
+        float: left;
+        margin-top:10px;
+    }
+
     .widget_tally_box p, .widget_tally_box span{
         text-align: left;
     }
@@ -95,16 +108,20 @@
                                         <div class="x_content">
                                             <div>
                                                 <ul class="list-inline widget_tally">
-                                                    @foreach( Auth::user()->employees as $employee )
+                                                    @foreach( Auth::user()->employees as $key1=> $employee )
                                                     <li>
                                                         <p>
                                                             <span class="month">
                                                                 <i class="fa fa-user" aria-hidden="true"></i>
                                                                 &nbsp;&nbsp;
-                                                                <a href="javascript:void(0);" class="emp-name {{ $loop->first ? 'active' : '' }}" data-emp-id="{{ $employee->id }}">{{ $employee->name . ' ' . $employee->surname }}</a>
+                                                                <a href="javascript:void(0);" class="emp-name" data-emp-id="{{ $employee->id }}">{{ $employee->name . ' ' . $employee->surname }}</a>
                                                             </span>
                                                         </p>
                                                     </li>
+
+                                                    <?php
+                                                     $mapData[]  = [@$employee->name . ' ' . @$employee->surname, (double)@$employee['current_location']->lat, @(double)$employee['current_location']->lng, $key1]; ?>
+                                                       
                                                     @endforeach
                                                 </ul>
                                             </div>
@@ -164,14 +181,31 @@
                                 <div class="col-md-5" style="padding-bottom:10px;">
                                     <form class="form-inline">
                                         <div class="form-group">
-                                            <label>Set Date : </label>
-                                            <input type="text" class="form-control datepicker" id="reportDate" readonly="readonly" style="background-color: #FFFFFF; border-radius: 0;">
+                                            <label>Search Date : </label>
+                                            <input type="text" class="form-control datepicker" id="reportDate" readonly="readonly" style="background-color: #FFFFFF; border-radius: 0;" value="<?php echo  isset($_GET['selected_date'])&&!empty($_GET['selected_date'])?$_GET['selected_date']:((isset($_GET['reportStartDate'])&& !empty($_GET['reportStartDate']))?'':date("Y-m-d"));?>">
                                         </div>
                                     </form>
                                 </div>
+								  <div class="col-md-" style="padding-bottom:10px;">
+                                    <form class="form-inline formSearchTimeframeDates" >
+                                        <div class="form-group">
+                                            <label>Start Date : </label>
+                                            <input type="text" class="form-control " id="fromDate" readonly="readonly" name="reportStartDate" value="<?php echo  isset($_GET['reportStartDate'])&&!empty($_GET['reportStartDate'])?$_GET['reportStartDate']:'';?>"style="background-color: #FFFFFF; border-radius: 0;">
+                                        </div>
+										 <div class="form-group">
+                                            <label>End Date : </label>
+                                            <input type="text" class="form-control " id="toDate" readonly="readonly"  name="reportEndDate" value="<?php echo  isset($_GET['reportEndDate'])&&!empty($_GET['reportEndDate'])?$_GET['reportEndDate']:'';?>" style="background-color: #FFFFFF; border-radius: 0;">
+                                        </div>
+										 <div class="form-group">
+                                           <input type="submit" class="form-control" value="Search" id="searchByDateSubmit" >
+                                        </div>
+                                    </form>
+									<a href="{{url('/')}}">Clear Filters</a>
+                                </div>
+								
                             </div>
                         </div>
-                        <div class="col-md-12">
+                    <!--    <div class="col-md-12">
                             <div class="table-responsive">
                                 <table id="tableReports" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0">
                                     <thead>  
@@ -187,40 +221,73 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
+                        </div>-->
 						 <div class="col-md-12" style="margin-top:20px;">
-						    <h4>Total Working Hours</h4>
-							<table id="tableReports" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0">
+						   
+							<table id="tableReports"  cellspacing="0">
                                     <thead>  
                                         <tr>    
+                                           <th>Employee</th>
                                            <th>Clock In Time</th>
                                             <th>Clock In Location</th>
                                             <th>Clock Out Time</th>
                                             <th>Clock Out Location</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="data_div">
-                                    </tbody>
+                                    <tbody id="data_div1">
+									@foreach($getReportByUsers['data']['todaySlots'] as $key=>$val)
+									<tr>
+										<td>{{$val->empName}}</td>
+										<td>{{$val->clock_in_time}}</td>
+										<td>{{$val->clock_in_location}}</td>
+										<td>{{$val->clock_out_time}}</td>
+										<td>{{$val->clock_out_location}}</td>
+										 
+									</tr>
+									
+									@endforeach
+									    </tbody>
                                 </table>
+								
+								
+								
+								<?php 
+								$reportStartDate = isset($_GET['reportStartDate'])&&!empty($_GET['reportStartDate'])?$_GET['reportStartDate']:'';
+								$reportEndDate = isset($_GET['reportEndDate'])&&!empty($_GET['reportEndDate'])?$_GET['reportEndDate']:'';
+								$selected_date = isset($_GET['selected_date'])&&!empty($_GET['selected_date'])?$_GET['selected_date']:'';
+								if($reportStartDate!='' && $reportEndDate!='' ){
+									for($i=strtotime($reportStartDate);$i<=strtotime($reportEndDate);$i=$i+86400){
+									$link = url('/?reportStartDate='.$reportStartDate."&reportEndDate=".$reportEndDate."&selected_date=".date("Y-m-d", $i));
+										if(strtotime($selected_date) == $i){
+											$class= 'btn btn-primary';
+										}else{ 
+											$class='btn btn-info';
+										}
+										
+										echo "<a href='".$link."' class='".$class."'>".date("Y-m-d", $i)."</a>";
+									}
+								}
+								
+								?>
 							</div>
                         <div class="col-md-12" style="margin-top:20px;">
-						    <h4>Total Working Hours</h4>
+						     <h4>Total Working Hours</h4>
 						    <table class="table table-striped dt-responsive nowrap" cellspacing="0">
 						        <tbody><tr>
 						            <th>Current Day</th>
-						            <td><span id="dayHours"></span></td>
+						            <td><span id="dayHours"> {{ $total_days_hours }} </span></td>
 						        </tr>
 						        <tr>
 						            <th>This Week</th>
-						            <td><span id="weekHours"></span></td>
+						            <td><span id="weekHours"> {{ $total_weaks_hours }} </span></td>
 						        </tr>
 						        <tr>
 						            <th>This Month</th>
-						            <td><span id="monthHours"></span></td>
+						            <td><span id="monthHours">{{ $total_month_hours }}</span></td>
 						        </tr>
 						        <tr>
 						            <th>This Year</th>
-						            <td><span id="yearHours"></span></td>
+						            <td><span id="yearHours">{{ $total_years_hours }}</span></td>
 						        </tr>
 						    </tbody></table>
 						</div>
@@ -234,7 +301,7 @@
                                     <form class="form-inline">
                                         <div class="form-group">
                                             <label>Choose Device : </label>
-                                            <select class="form-control" id="chooseDevice">
+                                            <select class="form-control" id="chooseDevice" onchange="checkingmap()">
                                                 <option value="">-- SELECT --</option>
                                                 @foreach( Auth::user()->employees as $employee )
                                                     <option value="{{ $employee->id }}">{{ $employee->name . ' ' . $employee->surname }}</option>
@@ -267,6 +334,9 @@
                         	</div>
                         </div>
                         <div class="col-md-12">
+                            <div id="mapCanvas1"></div>
+                        </div>
+                        <div class="col-md-12">
                             <div id="locationsMapCanvas"></div>
                         </div>
                     </div>
@@ -288,9 +358,21 @@
 <input type="hidden" id="emp-current-time" value="{!! (isset(Auth::user()->employees[0]->current_location->time) && !empty(Auth::user()->employees[0]->current_location->time) ) ? date('F d, Y H:i:s', strtotime(Auth::user()->employees[0]->current_location->time)) : '' !!}">
 
 <input type="hidden" id="emp-shift-type" value="{!! (isset(Auth::user()->employees[0]->shift_type) && !empty(Auth::user()->employees[0]->shift_type) ) ? Auth::user()->employees[0]->shift_type : '' !!}">
+<span id="mapEmpData" style="display: none"><?php echo json_encode($mapData); ?></span>
+
 
 <script type="text/javascript">
+    checkingmap();
 	// Click on top links
+    function checkingmap(){
+        if($("#chooseDevice").val()){
+            $("#mapCanvas1").hide();
+            $("#locationsMapCanvas").show();
+        }else{
+            $("#mapCanvas1").show();
+            $("#locationsMapCanvas").hide();
+        }
+    }
     $(".top-links").on('click', function(e){
         e.preventDefault();
 
@@ -307,10 +389,13 @@
             case 'reports' :
                 $("#divReports").show();
                 date = $("#reportDate").val();
-                fetchReports( date );
+                fromDate = $("#fromDate").val();
+                toDate = $("#toDate").val();
+				fetchReports(date,fromDate,toDate);
                 break;
         }
     });
+	
 </script>
 
 <!-- //////////////////////////////////////////////////////////////////////////////////// -->
@@ -360,7 +445,7 @@
         setCurrentLocation(latLng);
 
         map = new google.maps.Map(document.getElementById('mapCanvas'), {
-            zoom: 15,
+            zoom: 20,
             center: latLng,
             mapTypeId: google.maps.MapTypeId.ROADMAP
         });
@@ -399,14 +484,78 @@
             draggable: false
         });
 
-        marker.addListener('click', function() {
+      //  marker.addListener('click', function() {
             infowindow.open(map, marker);
-        });
+       // });
     }
 
     // Onload handler to fire off the app.
-    // google.maps.event.addDomListener(window, 'load', renderMap);
+    google.maps.event.addDomListener(window, 'load', renderMapMultiple);
 
+    google.maps.event.addDomListener(window, 'load', renderMapMultiple1);
+
+     // show all employees 
+    function renderMapMultiple(){
+        latLng = new google.maps.LatLng( lat, lng );
+        var locations = JSON.parse($('#mapEmpData').html());
+        console.log(locations);
+        var map = new google.maps.Map(document.getElementById('mapCanvas'), {
+          zoom: 20,
+          center: latLng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+
+        var infowindow = new google.maps.InfoWindow();
+
+        var marker, i;
+
+        for (i = 0; i < locations.length; i++) { 
+          marker = new google.maps.Marker({
+            position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+            map: map
+          });
+          var empId = locations[i][0];
+          var infowindowData = $('#infowindowEmp'+empId).html();
+          google.maps.event.addListener(marker, 'click', (function(marker, i) {
+            return function() {
+              infowindow.setContent(locations[i][0]);
+              infowindow.open(map, marker);
+            }
+          })(marker, i));
+        }
+    }
+
+    // another tab location
+
+    function renderMapMultiple1(){
+        latLng = new google.maps.LatLng( lat, lng );
+        var locations = JSON.parse($('#mapEmpData').html());
+        console.log(locations);
+        var map = new google.maps.Map(document.getElementById('mapCanvas1'), {
+          zoom: 20,
+          center: latLng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+
+        var infowindow = new google.maps.InfoWindow();
+
+        var marker, i;
+
+        for (i = 0; i < locations.length; i++) { 
+          marker = new google.maps.Marker({
+            position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+            map: map
+          });
+          var empId = locations[i][0];
+          var infowindowData = $('#infowindowEmp'+empId).html();
+          google.maps.event.addListener(marker, 'click', (function(marker, i) {
+            return function() {
+              infowindow.setContent(locations[i][0]);
+              infowindow.open(map, marker);
+            }
+          })(marker, i));
+        }
+    }
     // update address
     
 
@@ -466,7 +615,7 @@
 </script>
 
 <!--<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>-->
-
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
 
 <!-- //////////////////////////////////////////////////////////////////////////////////// -->
 <!-- //////////////////////////////////// Locations ///////////////////////////////////// -->
@@ -702,30 +851,51 @@
     var reports_dataTable;
 
     $( function() {
+
+	
+
+		$('#tableReports1').DataTable({  "order": [[ 1, "desc" ]],"pageLength": 50,"aoColumnDefs" : [   
+{
+  'bSortable' : false,  
+  'aTargets' : [ 0,1,2,3,4 ]
+}]});
         $('.datepicker').datepicker({
-            format: 'yyyy-mm-dd'
+            format: 'yyyy-mm-dd',
+			setDate:'<?php echo  isset($_GET['selected_date'])&&!empty($_GET['selected_date'])?$_GET['selected_date']:(isset($_GET['reportStartDate']))?'':date("Y-m-d");?>'
         }).on('changeDate', function(e){
             date = $(this).val();
-            fetchReports( date );
+			window.location.href="?selected_date="+date;
+           // fetchReports( date );
         });
 
-        $("#reportDate").val( moment().format('YYYY-MM-DD') );
+	$("#fromDate").datepicker({
+        format: 'yyyy-mm-dd'	 
+    });
+    $("#toDate").datepicker({
+        format: 'yyyy-mm-dd'
+    });
+		
+		
+        //$("#reportDate").val( moment().format('YYYY-MM-DD') );
 
         $(document).on('click', '#tableReports td:first-child', function(){
         	$("#tableReports td:first-child").css('font-weight', 'normal');
         	$(this).css('font-weight', 'bold');
         	employeeId = $(this).find('span').attr('employee-id');
+			var selected_date = $("#reportDate").val();
+			var start_date = $("#fromDate").val();
+			var end_date = $("#toDate").val();
+
         	$.ajax({
         		url : '{{ route("ajax.employees.working_hours") }}',
-        		data : { employee_id : employeeId },
+        		data : { employee_id : employeeId,selected_date:selected_date,start_date:start_date,end_date:end_date },
         		dataType : 'JSON',
         		success : function(response){
-                    // console.log(response);
-					console.log(response);
+                    console.log(response);
 					var HTML ='';
 					if(response.data.todaySlotsRecords>0){
 						$.each(response.data.todaySlots,function(key,val){
-							HTML += ' <tr><td>'+val.clock_in_time+'</td><td>'+val.clock_in_location+'</td><td>'+val.clock_out_time+'</td><td>'+val.clock_out_location+'</td></tr>';
+							HTML += ' <tr><td>'+val.empName+'</td><td>'+val.clock_in_time+'</td><td>'+val.clock_in_location+'</td><td>'+val.clock_out_time+'</td><td>'+val.clock_out_location+'</td></tr>';
 							
 						});
 						$("#data_div").html(HTML);
@@ -741,17 +911,48 @@
         	});
         });
     } );
-
-
-    function fetchReports(date)
+ 
+ 
+$("body").on("click","#searchByDateSubmit",function(){
+	
+	$(".formSearchTimeframeDates").validate({
+		rules:{
+			reportStartDate:{
+				required:true
+			},
+			reportEndDate:{
+				required:true
+			}
+		},
+		messages:{
+			reportStartDate:{
+				required:"Please select start date"
+			},
+			reportEndDate:{
+				required:"Please select end date"
+			}
+		} 
+	 
+		
+	})
+	
+	 
+	
+	
+	
+}); 
+    function fetchReports(date,fromDate,toDate)
     {
+		
         if( reports_dataTable == undefined )
         {
+			 
             reports_dataTable = $('#tableReports').DataTable( {
-                "ordering"   : false,
                 "searching"  : false,
                 "processing" : true,
                 "serverSide" : true,
+				
+				"order": [[ 1, "desc" ]],
                 // 'columnDefs' : [ { orderable: false, targets: [5] } ],
                 /*'columnDefs' : [ {
                 	"targets": [0],//index of column starting from 0
@@ -762,22 +963,67 @@
 				    }
                 } ],*/
                 "ajax":{
-                    url   : '{{ route("ajax.employees.reports") }}?date=' + date, // json datasource
+                    url   : '{{ route("ajax.employees.reports") }}?date=' + date+"&fromDate="+fromDate+"&toDate="+toDate, // json datasource
                     error : function(res){  // error handling
                         console.log('error');
                         console.log(res);
                         $(".employee-grid-error").html("");
                         $("#employee-grid").append('<tbody class="employee-grid-error"><tr><th colspan="3">No data found in the server</th></tr></tbody>');
                         $("#employee-grid_processing").css("display","none");
+						
+
      
                     }
-                }
+					
+                } 
             });
         }
         else
         {
-            reports_dataTable.ajax.url('{{ route("ajax.employees.reports") }}?date=' + date).load();
+		 reports_dataTable.ajax.url('{{ route("ajax.employees.reports") }}?date=' + date).load();
+			
         }
     }
+	
+	$(document).ready(function(){
+		var data = '<?php echo  isset($_GET['selected_date'])&&!empty($_GET['selected_date'])?$_GET['selected_date']:''?>';
+		var data1 = '<?php echo  isset($_GET['reportStartDate'])&&!empty($_GET['reportStartDate'])?$_GET['reportStartDate']:''?>';
+		if(data!=''||data1!=''){
+		  
+					$(".top-links").removeClass('active');
+					
+					$(".div-content").hide();
+					 $(".top-links[link-to=reports]").addClass('active');
+					 
+					$("#divReports").show();
+					date = $("#reportDate").val();
+					fromDate = $("#fromDate").val();
+					toDate = $("#toDate").val();
+					fetchReports(date,fromDate,toDate);
+				 
+		}
+	});
+
+	
 </script>
+<style type="text/css">
+#divCurrentLocation .col-md-3{
+    max-height: 545px;
+}
+
+.widget .x_panel{
+    max-height: 335px;
+    overflow: auto;
+}
+input:focus,textarea:focus{
+outline: none !important;
+}
+
+input.error, textarea.error{
+outline:red groove thin;
+}
+table#tableReports1 {
+    width: 100%!important;
+}
+</style>
 @endsection

@@ -298,28 +298,99 @@ class EmployeesController extends Controller
     {
 		$userId = Auth::user()->id;
     	$date = $request->date;
+    	$fromDate = $request->fromDate;
+    	$toDate = $request->toDate;
     	$employee_count = Employee::where("employer_id",$userId)->count();
     	$employees = DB::table("employees")->where("employer_id",$userId)->orderBy('id')->offset($request->start)->limit($request->length)->get();
     	$data = [];
+		$index =0;
     	
+		/***********************************/
+		$query = "SELECT *,employees.id as empId FROM reports left join employees on (employees.id=reports.employee_id) WHERE employees.employer_id =$userId";
+			$querySet = $query;
+			if(!empty($toDate) && !empty($fromDate)){
+				$querySet .=  " AND reports.created_at >='" . $fromDate." 00:00:00" . "' AND reports.created_at <='".$toDate." 23:59:59'";
+			} 
+			if($date!=''){
+				$querySet .= " AND reports.created_at::text LIKE '" . $date . "%'";	
+			}
+			$querySet1 = $querySet." order by reports.created_at desc ";
+			$querySet = $querySet." order by reports.created_at desc LIMIT ".$request->length." OFFSET ".$request->start;
+			
+			$report  = DB::select($querySet);
+			
+			$employee_count = count(DB::select($querySet1));
+		/***********************************/
+		$index =0;
+		$OldRows = array();
+		 foreach($report as $key=>$val){
+				if(in_array($val->clock_in_time,$OldRows)){
+					continue;
+				}
+				$data[$index][] = '<span employee-id="' . $val->empid . '">' . ucfirst($val->name) . ' ' . ucfirst($val->surname) . '</span>';
+				$OldRows[]= $val->clock_in_time;
+				$data[$index][] = $val->clock_in_time;
+				$data[$index][] = $val->clock_in_location;
+				$data[$index][] = $val->clock_out_time;
+				$data[$index][] = $val->clock_out_location;
+				$index++;
+			 }
+		
+	/*
     	for( $i=0; $i<count($employees); $i++ )
     	{
     		$employee_id = $employees[$i]->id;
-    		$query = "SELECT * FROM reports WHERE employee_id = $employee_id AND created_at::text LIKE '$date%' Order by id desc limit 1";
-    		$report = DB::select( $query );
+			/*if(!empty($fromDate)&&!empty($toDate)){
+				$query = "SELECT * FROM reports WHERE employee_id = $employee_id AND created_at >='" . $fromDate." 00:00:00'"." AND created_at <='".$toDate." 23:59:59'"." Order by id desc limit 1";
+				
+			}else{
+			 	$query = "SELECT * FROM reports WHERE employee_id = $employee_id AND created_at::text LIKE '$date%' Order by id desc limit 1";
+			}
+			  
+			
+			$query = "SELECT * FROM reports WHERE employee_id =$employee_id";
+			$querySet = $query;
+			if(!empty($toDate) && !empty($fromDate)){
+				$querySet .=  " AND created_at >='" . $fromDate." 00:00:00" . "' AND created_at <='".$toDate." 23:59:59'";
+			} 
+			if($date!=''){
+				$querySet .= " AND created_at::text LIKE '" . $date . "%'";	
+			}
+	 
+			$report  = DB::select($querySet);
+			 
+			 
+			 foreach($report as $key=>$val){
+				$data[$index][] = '<span employee-id="' . $employees[$i]->id . '">' . ucfirst($employees[$i]->name) . ' ' . ucfirst($employees[$i]->surname) . '</span>';
+				$data[$index][] = $val->clock_in_time;
+				$data[$index][] = $val->clock_in_location;
+				$data[$index][] = $val->clock_out_time;
+				$data[$index][] = $val->clock_out_location;
+				$index++;
+			 }
+			 
+			  
+			 
+    		//$report = DB::select( $query );
     		// $employees[$i]->report = $report;
-    		$data[$i][] = '<span employee-id="' . $employees[$i]->id . '">' . ucfirst($employees[$i]->name) . ' ' . ucfirst($employees[$i]->surname) . '</span>';
-    		$data[$i][] = @$report[0]->clock_in_time;
-    		$data[$i][] = @$report[0]->clock_in_location;
-    		$data[$i][] = @$report[0]->clock_out_time;
-    		$data[$i][] = @$report[0]->clock_out_location;
+    		
     	}
-        
+			foreach ($data as $key => $row) {
+				 
+					$attack[$key]  = $row[1];
+				}
+				$sort = constant("SORT_DESC");
+				array_multisort($attack, $sort, $data);
+	 
+		*/
+		$dataCount = count($data);
+        //$getReportByUsers = $this->getReportByUsers();
         $json_data = array(
                     "draw"            => intval( $request->draw ),   
-                    "recordsTotal"    => intval( $employee_count ),  // total number of records
-                    "recordsFiltered" => intval( $employee_count ), // total number of records after searching,
-                    "data"            => $data   // total data array
+                    "recordsTotal"    => intval( $dataCount ),  // total number of records
+                    "recordsFiltered" => intval( $dataCount ), // total number of records after searching,
+                    "data"            => $data  ,
+					 
                     );
 
         echo json_encode($json_data);
@@ -342,9 +413,10 @@ class EmployeesController extends Controller
     		$maxDate = $request->maxDate;
 			//$query = "SELECT * FROM employee_current_locations WHERE employee_id = $employeeId AND created_at::text >= '$minDate' AND created_at::text <= '$maxDate'";
 			$query = "SELECT * FROM employee_current_locations WHERE employee_id = $employeeId AND DATE(created_at) >= '$minDate' AND DATE(created_at) <= '$maxDate'";
+			
+			#checking properly work single employee location
+			//$query = "SELECT * FROM employee_current_locations WHERE employee_id = $employeeId ";
 			$result = DB::select( $query );
-			//echo "<pre>";
-			//print_r($result);die;
     		$employee->current_locations = $result;
     		$response['success'] = 1;
     		$response['data']['employee'] = $employee;
@@ -366,28 +438,46 @@ class EmployeesController extends Controller
     	{
     		$response['message'] = "Employee does not exists.";
     	}
-
-    	 $query = "SELECT * FROM reports WHERE employee_id = $employee_id "; 
-  	// $day_report  = DB::select($query . " AND created_at::text LIKE '2017-11-01%'");
-    	$day_report  = DB::select($query . " AND created_at::text LIKE '" . date('Y-m-d') . "%'");
+		$selected_date = isset($request->selected_date)&& !empty($request->selected_date)?$request->selected_date:date('Y-m-d');
+		
+		 
+		$selectedDate = isset($_GET['selected_date'])&&!empty($_GET['selected_date'])?$_GET['selected_date']:'';//date('Y-m-d');
+		
+		$reportStartDate  = isset($_GET['start_date'])&&!empty($_GET['start_date'])?$_GET['start_date']:'';
+		$reportEndDate  = isset($_GET['end_date'])&&!empty($_GET['end_date'])?$_GET['end_date']:'';
+		 $query = "SELECT * FROM reports WHERE employee_id = $employee_id ";
+		 $querySet = $query;
+		if(!empty($reportEndDate)&&!empty($reportStartDate)){
+				
+			$querySet .=  " AND created_at >='" . $reportStartDate." 00:00:00" . "' AND created_at <='".$reportEndDate." 23:59:59'";
+		} 	
+		if($selectedDate!=''){
+			
+			$querySet .= " AND created_at::text LIKE '" . $selectedDate . "%'";
+		}
+		 
+		$day_report  = DB::select($querySet);
+	 
+		
+		
+  		// $day_report  = DB::select($query . " AND created_at::text LIKE '2018-02-21%'");
+		//$day_report  = DB::select($query . " AND created_at::text LIKE '" .$selected_date . "%'");
     	$day_hours = 0;
 		$daySeconds = 0;
-		foreach($day_report as $report)
+		$empName = $employee->name." ".$employee->surname;
+		foreach($day_report as $key=>$report)
     	{
-		 
+			 $day_report[$key]->empName = $empName;
     		/*$clock_in_time  = date_create( $report->clock_in_time );
 			$clock_out_time = date_create( $report->clock_out_time );
 			$diff  = date_diff($clock_in_time, $clock_out_time);
 	    	$hours = $diff->format('%h');*/
-		 
 			$seconds = strtotime($report->clock_out_time) - strtotime($report->clock_in_time);
 		 	$daySeconds = (int)$daySeconds+ (int)$seconds;
-			
     	}
-		 	$day_hours =  (int)($daySeconds / 60 / 60);
-	     
+		$day_hours =  (int)($daySeconds / 60 / 60);
 
-    	$week_report = DB::select($query . " AND created_at >= '" . date('Y-m-d', strtotime('-7 days')) . " 00:00:00' AND created_at <= '" . date('Y-m-d') . " 23:59:59'");
+		$week_report = DB::select($query . " AND created_at >= '" . date('Y-m-d', strtotime('-7 days')) . " 00:00:00' AND created_at <= '" . date('Y-m-d') . " 23:59:59'");
     	$week_hours = 0;
 		$weekSeconds = 0;
     	foreach($week_report as $report)
@@ -396,13 +486,11 @@ class EmployeesController extends Controller
 			$clock_out_time = date_create( $report->clock_out_time );
 			$diff  = date_diff($clock_in_time, $clock_out_time);
 	    	$hours = $diff->format('%h');*/
-			
 			$seconds = strtotime($report->clock_out_time) - strtotime($report->clock_in_time);
-				$weekSeconds = (int)$weekSeconds+ (int)$seconds;
-			
-    	}
-			$week_hours =  (int)($weekSeconds / 60 / 60);
-	  
+			$weekSeconds = (int)$weekSeconds+ (int)$seconds;
+		}
+		$week_hours =  (int)($weekSeconds / 60 / 60);
+
     	$month_report = DB::select($query . " AND created_at >= '" . date('Y-m-d', strtotime('-1 month')) . " 00:00:00' AND created_at <= '" . date('Y-m-d') .  " 23:59:59'");
     	$month_hours = 0;
 		$monthSeconds =0;
@@ -411,13 +499,10 @@ class EmployeesController extends Controller
     		/*$clock_in_time  = date_create( $report->clock_in_time );
 			$clock_out_time = date_create( $report->clock_out_time );
 			$diff  = date_diff($clock_in_time, $clock_out_time);
-
 	    	$hours = $diff->format('%h');*/
 			$seconds = strtotime($report->clock_out_time) - strtotime($report->clock_in_time);
 		 	
-			$monthSeconds = (int)$monthSeconds+ (int)$seconds;
-			
-			
+			$monthSeconds = (int)$monthSeconds + (int)$seconds;
     	}
 			$month_hours =  (int)($monthSeconds / 60 / 60);
 	    
@@ -444,4 +529,90 @@ class EmployeesController extends Controller
 
     	return json_encode($response);
     }
+	
+	
+	/*****Function to get all user records ******/
+	public function getReportByUsers(){
+		$employerID  = Auth::user()->id;
+		
+	 
+		$eArray = '';
+		$empName= array();
+		$empArr = DB::table("employees")->where("employer_id",$employerID)->get();
+		foreach($empArr as $key=>$val){
+			$eArray .=  $val->id.",";	
+			$empName[$val->id] = $val->name." ".$val->surname;
+		}
+		$eArray = rtrim($eArray,",");
+		 $query = "SELECT * FROM reports WHERE employee_id in($eArray)";
+  	 	 //$day_report  = DB::select($query . " AND created_at::text LIKE '2018-02-21%'");
+    	$day_report  = DB::select($query . " AND created_at::text LIKE '" . date('Y-m-d') . "%'");
+	 
+    	$day_hours = 0;
+		$daySeconds = 0;
+		foreach($day_report as $key =>$report)
+    	{
+			 $day_report[$key]->empName = $empName[$report->employee_id] ;
+    		/*$clock_in_time  = date_create( $report->clock_in_time );
+			$clock_out_time = date_create( $report->clock_out_time );
+			$diff  = date_diff($clock_in_time, $clock_out_time);
+	    	$hours = $diff->format('%h');*/
+			$seconds = strtotime($report->clock_out_time) - strtotime($report->clock_in_time);
+		 	$daySeconds = (int)$daySeconds+ (int)$seconds;
+    	}
+		$day_hours =  (int)($daySeconds / 60 / 60);
+
+		$week_report = DB::select($query . " AND created_at >= '" . date('Y-m-d', strtotime('-7 days')) . " 00:00:00' AND created_at <= '" . date('Y-m-d') . " 23:59:59'");
+    	$week_hours = 0;
+		$weekSeconds = 0;
+    	foreach($week_report as $report)
+    	{
+    		/*$clock_in_time  = date_create( $report->clock_in_time );
+			$clock_out_time = date_create( $report->clock_out_time );
+			$diff  = date_diff($clock_in_time, $clock_out_time);
+	    	$hours = $diff->format('%h');*/
+			$seconds = strtotime($report->clock_out_time) - strtotime($report->clock_in_time);
+			$weekSeconds = (int)$weekSeconds+ (int)$seconds;
+		}
+		$week_hours =  (int)($weekSeconds / 60 / 60);
+
+    	$month_report = DB::select($query . " AND created_at >= '" . date('Y-m-d', strtotime('-1 month')) . " 00:00:00' AND created_at <= '" . date('Y-m-d') .  " 23:59:59'");
+    	$month_hours = 0;
+		$monthSeconds =0;
+    	foreach($month_report as $report)
+    	{
+    		/*$clock_in_time  = date_create( $report->clock_in_time );
+			$clock_out_time = date_create( $report->clock_out_time );
+			$diff  = date_diff($clock_in_time, $clock_out_time);
+	    	$hours = $diff->format('%h');*/
+			$seconds = strtotime($report->clock_out_time) - strtotime($report->clock_in_time);
+		 	
+			$monthSeconds = (int)$monthSeconds + (int)$seconds;
+    	}
+			$month_hours =  (int)($monthSeconds / 60 / 60);
+	    
+    	$year_report = DB::select($query . " AND created_at >= '" . date('Y-m-d', strtotime('-1 year')) . " 00:00:00' AND created_at <= '" . date('Y-m-d') .  " 23:59:59'");
+    	$year_hours = 0;
+		$yearSeconds =0;
+    	foreach($year_report as $report)
+    	{
+    		/*$clock_in_time  = date_create( $report->clock_in_time );
+			$clock_out_time = date_create( $report->clock_out_time );
+			$diff  = date_diff($clock_in_time, $clock_out_time);
+	    	$hours = $diff->format('%h');*/
+				$seconds = strtotime($report->clock_out_time) - strtotime($report->clock_in_time);
+		 	$yearSeconds = (int)$yearSeconds+ (int)$seconds;
+    	}
+			$year_hours =  (int)($yearSeconds / 60 / 60);
+	     
+    	$response['data']['todaySlotsRecords']   = count($day_report);
+    	$response['data']['todaySlots']   = $day_report;
+    	$response['data']['day_hours']   = $day_hours;
+    	$response['data']['week_hours']  = $week_hours;
+    	$response['data']['month_hours'] = $month_hours;
+    	$response['data']['year_hours']  = $year_hours;
+
+		return $response;
+	}
+	
 }
